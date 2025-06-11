@@ -20,7 +20,7 @@
             "request": "launch",
             "module": "uvicorn", // You could use gunicorn or your own .py file.
             "args": [
-                "your_package.apis.service.app:app",
+                "agent.apis.service.app:app",
                 "--host",
                 "0.0.0.0",
                 "--port",
