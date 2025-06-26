@@ -5,7 +5,17 @@ description = ""
 authors = [{ name = "Federico Bello", email = "fe.debello13@gmail.com" }]
 requires-python = "~=3.11"
 readme = "README.md"
-dependencies = []
+dependencies = [
+    "fastapi>=0.115.13",
+    "ipykernel>=6.29.5",
+    "langfuse[llama-index]>=3.0.3",
+    "llama-index[litellm,llms]>=0.12.43",
+    "llama-index-tools-mcp>=0.2.5",
+    "llama-index-llms-litellm>=0.5.1",
+    "openinference-instrumentation-llama-index>=4.3.0",
+    "llama-index-llms-openai>=0.4.7",
+    "vulture>=2.14",
+]
 
 [build-system]
 requires = ["hatchling"]
