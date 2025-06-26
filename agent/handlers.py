@@ -8,7 +8,7 @@ from llama_index.core.workflow import StopEvent
 from logging_config import get_logger
 from schemas import Message, ReturnChunk
 
-from agent import create_agent, get_tools, run_agent
+from agent import create_agent, run_agent
 
 logger = get_logger(__name__)
 
@@ -57,10 +57,9 @@ async def respond(
     temperature = float(os.getenv("TEMPERATURE", "0"))
 
     # Create agent with tools
-    agent = create_agent(
+    agent = await create_agent(
         session_id=session_id,
         temperature=temperature,
-        tools=await get_tools(),
     )
 
     is_final_answer = False

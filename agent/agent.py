@@ -1,39 +1,12 @@
 import os
 from collections.abc import AsyncGenerator
-from pathlib import Path
 from typing import cast
 
-import yaml
+from initialize import get_prompts, get_tools
 from llama_index.core.agent.workflow import ReActAgent
-from llama_index.core.tools.function_tool import FunctionTool
+from llama_index.core.prompts import PromptTemplate
 from llama_index.llms.litellm import LiteLLM
-from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 from workflows.events import Event
-
-with Path("agent/prompts.yaml").open("r") as f:
-    prompts = yaml.safe_load(f)
-
-header_prompt = prompts["header_prompt"]
-system_prompt = prompts["system_prompt"]
-
-
-async def get_tools() -> list[FunctionTool]:
-    mcp_client_datawarehouse = BasicMCPClient("http://127.0.0.1:6000/sse")
-    datawarehouse_tools = McpToolSpec(
-        client=mcp_client_datawarehouse,
-    )
-
-    mcp_client_rag = BasicMCPClient("http://127.0.0.1:6001/sse")
-    rag_tools = McpToolSpec(
-        client=mcp_client_rag,
-    )
-
-    datawarehouse_tools_list = await datawarehouse_tools.to_tool_list_async()
-    rag_tools_list = await rag_tools.to_tool_list_async()
-
-    all_tools = [*datawarehouse_tools_list, *rag_tools_list]
-
-    return all_tools
 
 
 def get_llm(temperature: float, session_id: str) -> LiteLLM:
@@ -58,11 +31,9 @@ def get_llm(temperature: float, session_id: str) -> LiteLLM:
     )
 
 
-def create_agent(
+async def create_agent(
     session_id: str,
     temperature: float = 0.0,
-    tools: list[FunctionTool] | None = None,
-    system_prompt: str = system_prompt,
 ) -> ReActAgent:
     """Create a LangGraph ReAct agent with the given LLM, tools and system prompt.
 
@@ -75,15 +46,18 @@ def create_agent(
     Returns:
         A compiled LangGraph agent ready to be invoked
     """
+    prompts = get_prompts()
+    tools = await get_tools()
+
     agent = ReActAgent(
         tools=tools,
         llm=get_llm(temperature, session_id),
-        system_prompt=system_prompt,
+        system_prompt=prompts.system_prompt,
     )
 
     agent.update_prompts(
         {
-            "react_header": header_prompt,
+            "react_header": PromptTemplate(prompts.header_prompt),
         }
     )
 

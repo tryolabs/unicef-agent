@@ -19,3 +19,8 @@ class ReturnChunk(BaseModel):
     response: str = ""
     tool_call: str = ""
     is_finished: bool = False
+
+
+class Prompts(BaseModel):
+    header_prompt: str
+    system_prompt: str
