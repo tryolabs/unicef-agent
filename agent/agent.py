@@ -3,13 +3,19 @@ from collections.abc import AsyncGenerator
 from typing import cast
 
 from initialize import get_prompts, get_tools
+from langfuse import get_client
+from langfuse.types import TraceContext
 from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.prompts import PromptTemplate
 from llama_index.llms.litellm import LiteLLM
+from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from workflows.events import Event
 
+langfuse = get_client()
+LlamaIndexInstrumentor().instrument()
 
-def get_llm(temperature: float, session_id: str) -> LiteLLM:
+
+def get_llm(temperature: float) -> LiteLLM:
     """Get the LLM model.
 
     Args:
@@ -23,35 +29,26 @@ def get_llm(temperature: float, session_id: str) -> LiteLLM:
         model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
         temperature=temperature,
         openai_api_key=os.getenv("OPENAI_API_KEY"),
-        model_kwargs={
-            "metadata": {
-                "session_id": session_id,
-            }
-        },
     )
 
 
 async def create_agent(
-    session_id: str,
     temperature: float = 0.0,
 ) -> ReActAgent:
     """Create a LangGraph ReAct agent with the given LLM, tools and system prompt.
 
     Args:
-        session_id: The session ID to use for the agent
         temperature: The temperature to use for the agent
-        tools: List of tools available to the agent
-        system_prompt: System prompt to provide context to the agent
-
     Returns:
         A compiled LangGraph agent ready to be invoked
     """
     prompts = get_prompts()
     tools = await get_tools()
+    llm = get_llm(temperature)
 
     agent = ReActAgent(
         tools=tools,
-        llm=get_llm(temperature, session_id),
+        llm=llm,
         system_prompt=prompts.system_prompt,
     )
 
@@ -67,23 +64,32 @@ async def create_agent(
 async def run_agent(
     agent: ReActAgent,
     inputs: dict[str, list[dict[str, str]]],
+    trace_id: str,
+    session_id: str,
 ) -> AsyncGenerator[Event, None]:
     """Run a LangGraph agent with the given inputs and stream the results.
 
     Args:
         agent: The compiled LangGraph agent to run
         inputs: Dictionary of inputs to provide to the agent
+        trace_id: The trace ID to associate with this model
         session_id: The session ID to associate with this model
-        tags: List of tags to associate with the trace
 
     Yields:
         Chunks of the agent's response stream
     """
-    handler = agent.run(str(inputs))
+    with langfuse.start_as_current_span(
+        trace_context=TraceContext(trace_id=trace_id),
+        input=inputs,
+        name="",
+    ) as root_span:
+        root_span.update_trace(session_id=session_id)
 
-    async for chunk in handler.stream_events():
-        yield chunk
+        handler = agent.run(str(inputs))  # type: ignore[arg-type]
 
-    response = cast("Event", await handler)
+        async for chunk in handler.stream_events():
+            yield chunk
 
-    yield response
+        response = cast("Event", await handler)
+
+        yield response

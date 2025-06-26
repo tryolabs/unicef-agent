@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 import uvicorn
@@ -6,6 +7,9 @@ from fastapi.responses import StreamingResponse
 from handlers import handle_response
 from logging_config import get_logger
 from schemas import Chat
+
+logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+logging.getLogger("litellm").setLevel(logging.WARNING)
 
 logger = get_logger(__name__)
 
@@ -34,13 +38,14 @@ async def ask(chat: Chat) -> StreamingResponse:
             detail="Chat messages cannot be empty",
         )
 
-    trace_id = str(uuid.uuid4())
+    trace_id = uuid.uuid4().hex
+
     session_id = chat.session_id
     logger.info(
-        "Processing question: %s with session ID: %s and trace ID: %s",
+        "Processing question: %s with trace ID: %s and session ID: %s",
         chat.chat_messages[-1].content,
-        session_id,
         trace_id,
+        session_id,
     )
 
     return StreamingResponse(

@@ -18,7 +18,7 @@ async def handle_response(
     trace_id: str,
     session_id: str,
 ) -> AsyncGenerator[str, None]:
-    """Handle the response by creating a temp directory, running respond, and cleaning up.
+    """Handle the response by running respond, and cleaning up.
 
     Args:
         messages: List of messages to process
@@ -27,8 +27,6 @@ async def handle_response(
 
     Yields:
         JSON serialized chunks of the response
-
-    Cleans up the temporary directory after completion, even if an error occurs.
     """
     formatted_messages = _format_messages(messages)
 
@@ -57,20 +55,19 @@ async def respond(
     temperature = float(os.getenv("TEMPERATURE", "0"))
 
     # Create agent with tools
-    agent = await create_agent(
-        session_id=session_id,
-        temperature=temperature,
-    )
+    agent = await create_agent(temperature=temperature)
 
     is_final_answer = False
     is_thought_chunk = True
-    async for chunk in run_agent(
+    async for chunk in run_agent(  # type: ignore[arg-type]
         agent,
         messages,
+        trace_id,
+        session_id,
     ):
         match chunk:
             case ToolCallResult():
-                return_chunk = _process_tool_call_chunk(chunk, trace_id)  # , temp_dir)
+                return_chunk = _process_tool_call_chunk(chunk, trace_id)
 
             case AgentStream():
                 if chunk.delta.startswith("Action"):
@@ -138,7 +135,6 @@ def _process_tool_call_chunk(
     Args:
         chunk: ToolCallResult object containing tool name and output
         thinking_trace_id: Trace ID for the thinking phase
-        temp_dir: Directory path for temporary files
 
     Returns:
         ReturnChunk object with tool call details and any HTML content
