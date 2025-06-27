@@ -2,6 +2,7 @@ import logging
 import uuid
 
 import uvicorn
+from config import load_config
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import StreamingResponse
 from handlers import handle_response
@@ -12,6 +13,8 @@ logging.getLogger("LiteLLM").setLevel(logging.WARNING)
 logging.getLogger("litellm").setLevel(logging.WARNING)
 
 logger = get_logger(__name__)
+
+config = load_config()
 
 app = FastAPI()
 
@@ -53,6 +56,7 @@ async def ask(chat: Chat) -> StreamingResponse:
             chat.chat_messages,
             trace_id,
             session_id,
+            config,
         ),
         media_type="text/event-stream",
     )
@@ -61,6 +65,10 @@ async def ask(chat: Chat) -> StreamingResponse:
 if __name__ == "__main__":
     logger.info("🚀 Starting server... ")
 
-    logger.info('Check "http://localhost:8000" for the server status')
+    logger.info(
+        'Check "http://%s:%s" for the server status',
+        config.server.host,
+        config.server.port,
+    )
 
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host=config.server.host, port=config.server.port)

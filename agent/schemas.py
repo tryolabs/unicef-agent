@@ -24,3 +24,32 @@ class ReturnChunk(BaseModel):
 class Prompts(BaseModel):
     header_prompt: str
     system_prompt: str
+
+
+class ServerConfig(BaseModel):
+    """Server configuration settings."""
+
+    port: int
+    host: str
+
+
+class LLMConfig(BaseModel):
+    """LLM configuration settings."""
+
+    model: str
+    temperature: float
+
+
+class MCPConfig(BaseModel):
+    """MCP configuration settings."""
+
+    datawarehouse_url: str
+    rag_url: str
+
+
+class Config(BaseModel):
+    """Configuration settings."""
+
+    server: ServerConfig
+    mcp: MCPConfig
+    llm: LLMConfig

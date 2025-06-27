@@ -9,42 +9,41 @@ from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.prompts import PromptTemplate
 from llama_index.llms.litellm import LiteLLM
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from schemas import Config, LLMConfig
 from workflows.events import Event
 
 langfuse = get_client()
 LlamaIndexInstrumentor().instrument()
 
 
-def get_llm(temperature: float) -> LiteLLM:
+def get_llm(llm_config: LLMConfig) -> LiteLLM:
     """Get the LLM model.
 
     Args:
-        temperature: The temperature to use for the model
-        session_id: The session ID to associate with this model
+        llm_config: The configuration to use for the model
 
     Returns:
         A configured ChatLiteLLM instance
     """
     return LiteLLM(
-        model=os.getenv("MODEL_NAME", "gpt-4o-mini"),
-        temperature=temperature,
+        model=llm_config.model,
+        temperature=llm_config.temperature,
         openai_api_key=os.getenv("OPENAI_API_KEY"),
     )
 
 
-async def create_agent(
-    temperature: float = 0.0,
-) -> ReActAgent:
+async def create_agent(config: Config) -> ReActAgent:
     """Create a LangGraph ReAct agent with the given LLM, tools and system prompt.
 
     Args:
-        temperature: The temperature to use for the agent
+        config: The configuration to use for the agent
+
     Returns:
         A compiled LangGraph agent ready to be invoked
     """
     prompts = get_prompts()
-    tools = await get_tools()
-    llm = get_llm(temperature)
+    tools = await get_tools(config.mcp)
+    llm = get_llm(config.llm)
 
     agent = ReActAgent(
         tools=tools,

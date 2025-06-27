@@ -3,16 +3,24 @@ from pathlib import Path
 import yaml
 from llama_index.core.tools.function_tool import FunctionTool
 from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
-from schemas import Prompts
+from schemas import MCPConfig, Prompts
 
 
-async def get_tools() -> list[FunctionTool]:
-    mcp_client_datawarehouse = BasicMCPClient("http://127.0.0.1:6000/sse")
+async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:
+    """Get the tools for the agent.
+
+    Args:
+        mcp_config: The configuration to use for the MCP clients
+
+    Returns:
+        list[FunctionTool]: The tools for the agent
+    """
+    mcp_client_datawarehouse = BasicMCPClient(mcp_config.datawarehouse_url)
     datawarehouse_tools = McpToolSpec(
         client=mcp_client_datawarehouse,
     )
 
-    mcp_client_rag = BasicMCPClient("http://127.0.0.1:6001/sse")
+    mcp_client_rag = BasicMCPClient(mcp_config.rag_url)
     rag_tools = McpToolSpec(
         client=mcp_client_rag,
     )

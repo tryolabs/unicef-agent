@@ -1,0 +1,11 @@
+server:
+  port: 8000
+  host: 127.0.0.1
+
+mcp:
+  datawarehouse_url: http://127.0.0.1:6000/sse
+  rag_url: http://127.0.0.1:6001/sse
+
+llm:
+  model: "gpt-4.1"
+  temperature: 0.0
