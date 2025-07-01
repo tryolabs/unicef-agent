@@ -25,10 +25,20 @@ async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:
         client=mcp_client_rag,
     )
 
+    mcp_client_geospatial = BasicMCPClient(mcp_config.geospatial_url)
+    geospatial_tools = McpToolSpec(
+        client=mcp_client_geospatial,
+    )
+
     datawarehouse_tools_list = await datawarehouse_tools.to_tool_list_async()
     rag_tools_list = await rag_tools.to_tool_list_async()
+    geospatial_tools_list = await geospatial_tools.to_tool_list_async()
 
-    all_tools = [*datawarehouse_tools_list, *rag_tools_list]
+    all_tools = [
+        *datawarehouse_tools_list,
+        *rag_tools_list,
+        *geospatial_tools_list,
+    ]
 
     return all_tools
 

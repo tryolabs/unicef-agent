@@ -45,6 +45,7 @@ class MCPConfig(BaseModel):
 
     datawarehouse_url: str
     rag_url: str
+    geospatial_url: str
 
 
 class Config(BaseModel):
