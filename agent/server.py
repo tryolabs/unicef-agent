@@ -21,6 +21,7 @@ app = FastAPI()
 
 @app.get("/")
 async def root() -> dict[str, str]:
+    logger.info("Root endpoint called")
     return {"message": "Hello World"}
 
 
@@ -35,6 +36,7 @@ async def ask(chat: Chat) -> StreamingResponse:
     Returns:
         StreamingResponse: Streaming response containing the response from the agent.
     """
+    logger.info("Received /ask endpoint call with session_id=%s", chat.session_id)
     if chat.chat_messages == [] or chat.chat_messages[-1].content == "":
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
