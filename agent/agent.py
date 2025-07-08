@@ -1,4 +1,3 @@
-import os
 from collections.abc import AsyncGenerator
 from typing import cast
 
@@ -28,7 +27,6 @@ def get_llm(llm_config: LLMConfig) -> LiteLLM:
     return LiteLLM(
         model=llm_config.model,
         temperature=llm_config.temperature,
-        openai_api_key=os.getenv("OPENAI_API_KEY"),
     )
 
 

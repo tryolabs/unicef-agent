@@ -2,10 +2,9 @@ import logging
 import uuid
 
 import uvicorn
-from config import load_config
+from config import config
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import StreamingResponse
-from handlers import handle_response
 from logging_config import get_logger
 from schemas import Chat
 
@@ -13,8 +12,6 @@ logging.getLogger("LiteLLM").setLevel(logging.WARNING)
 logging.getLogger("litellm").setLevel(logging.WARNING)
 
 logger = get_logger(__name__)
-
-config = load_config()
 
 app = FastAPI()
 
@@ -65,6 +62,12 @@ async def ask(chat: Chat) -> StreamingResponse:
 
 
 if __name__ == "__main__":
+    from initialize import initialize_app
+
+    initialize_app()
+
+    from handlers import handle_response
+
     logger.info("🚀 Starting server... ")
 
     logger.info(

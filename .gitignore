@@ -133,3 +133,4 @@ cython_debug/
 /logs/
 
 .personal_workspace/
+.secrets/

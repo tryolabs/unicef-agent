@@ -32,3 +32,6 @@ def load_config(config_path: Path | None = None) -> Config:
         config_data = yaml.safe_load(f)
 
     return Config(**config_data)
+
+
+config = load_config()
