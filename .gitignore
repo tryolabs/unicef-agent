@@ -134,3 +134,4 @@ cython_debug/
 
 .personal_workspace/
 .secrets/
+agent/users.json

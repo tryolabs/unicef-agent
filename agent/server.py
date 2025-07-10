@@ -1,11 +1,16 @@
 import logging
 import uuid
+from datetime import timedelta
+from typing import Annotated
 
 import uvicorn
+from auth import authenticate_user, create_access_token, get_current_user
 from config import config
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import StreamingResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from logging_config import get_logger
+from pydantic import BaseModel
 from schemas import Chat
 
 logging.getLogger("LiteLLM").setLevel(logging.WARNING)
@@ -22,8 +27,68 @@ async def root() -> dict[str, str]:
     return {"message": "Hello World"}
 
 
+class Token(BaseModel):
+    access_token: str
+    username: str
+    token_type: str = "bearer"  # noqa: S105
+
+
+# Temp endpoint for auth
+@app.post("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Token:
+    """Authenticate user and return access token.
+
+    Args:
+        form_data: OAuth2 password request form containing username and password.
+
+    Returns:
+        Token: Access token with bearer type and username.
+    """
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=60)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires,
+    )
+
+    return Token(
+        access_token=access_token,
+        username=user.username,
+    )
+
+
+class User(BaseModel):
+    username: str
+
+
+@app.get("/users/me", response_model=User)
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    """Get current authenticated user information.
+
+    Args:
+        current_user: Current authenticated user from dependency injection.
+
+    Returns:
+        User: Current authenticated user.
+    """
+    return current_user
+
+
 @app.post("/ask")
-async def ask(chat: Chat) -> StreamingResponse:
+async def ask(
+    chat: Chat, _current_user: Annotated[User, Depends(get_current_user)]
+) -> StreamingResponse:
     """Process user question and return streaming response.
 
     Args:
