@@ -37,6 +37,7 @@ header_prompt: |
   The map should have every layer that you used to answer the question.
   When showing the children population layer, make sure show the children population affected by the hazard, not the total children population.
   DO NOT show the total children population layer. ALWAYS show the children population affected by the hazard.
+  When building the map and showing the affected children by some layers, use the color palette of the hazard layer, not the demographic layer.
   Do not reference the map in the final answer.
   At that point, you MUST respond in one of the following two formats:
 
@@ -162,6 +163,7 @@ system_prompt: |
         - Format your response in plain markdown without code blocks
         - Make sure to always include the numerical answer in your response
         - Show the children population affected by the hazard in the map.
+        - When building the map and showing the affected children by some layers, use the color palette of the hazard layer, not the demographic layer.
 
      ## SHOWING YOUR THINKING
 
