@@ -79,7 +79,7 @@ async def respond(
                 if not is_thought_chunk:
                     continue
 
-                return_chunk = _process_agent_stream_chunk(chunk, trace_id)
+                return_chunk = _process_agent_stream_chunk(chunk, f"th_{trace_id}")
 
             case StopEvent():
                 # Signal that the thought is complete and the next chunk will be the response
@@ -241,7 +241,6 @@ def _parse_string_to_tool_output(input_string: str) -> ToolOutput:
     Returns:
         A ToolOutput instance with the extracted data.
     """
-    logger.info("input_string: %s", input_string)
     try:
         # Extract the 'meta' value
         meta_match = re.search(r"meta=([^ ]+)", input_string)
