@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -19,6 +19,22 @@ class ReturnChunk(BaseModel):
     response: str = ""
     tool_call: str = ""
     is_finished: bool = False
+    html_content: str = ""
+
+
+class TextOutput(BaseModel):
+    type: Literal["text"]
+    text: dict[str, Any]
+
+
+class ToolOutput(BaseModel):
+    meta: str | None = None
+    content: TextOutput
+    is_error: bool = False
+
+    def __str__(self) -> str:
+        """String representation of the ToolOutput object."""
+        return f"meta: {self.meta}\ncontent: {self.content}\nis_error: {self.is_error}"
 
 
 class Prompts(BaseModel):

@@ -1,11 +1,11 @@
-import ast
 import json
+import re
 from collections.abc import AsyncGenerator
 
 from llama_index.core.agent.workflow import AgentOutput, AgentStream, ToolCallResult
 from llama_index.core.workflow import StopEvent
 from logging_config import get_logger
-from schemas import Config, Message, ReturnChunk
+from schemas import Config, Message, ReturnChunk, TextOutput, ToolOutput
 
 from agent import create_agent, run_agent
 
@@ -144,18 +144,28 @@ def _process_tool_call_chunk(
     """
     try:
         try:
-            content = ast.literal_eval(chunk.tool_output.content)
-            input_arguments: dict[str, str] = content.get("input_arguments", {})
+            content = _parse_string_to_tool_output(chunk.tool_output.content)
+            input_arguments: dict[str, str] = content.content.text.get("input_arguments", {})
+
         except (ValueError, SyntaxError):
-            content = chunk.tool_output.content
             input_arguments = {}
+            content = None
+
         tool_name = chunk.tool_name
         logger.info("Handling tool call: %s", tool_name)
-
         tool_call_message = f"Calling {tool_name}"
+
         if input_arguments:
             tool_call_message += " with arguments:\n" + "".join(
                 [f"   {key}: {value}\n" for key, value in input_arguments.items()]
+            )
+
+        if tool_name == "build_map" and content:
+            html_content = content.content.text.get("html_content", "")
+            return ReturnChunk(
+                tool_call=tool_call_message,
+                trace_id=thinking_trace_id,
+                html_content=html_content,
             )
 
         return ReturnChunk(
@@ -220,3 +230,75 @@ def _process_final_answer(chunk: AgentOutput, response_trace_id: str) -> ReturnC
     Logs an error if the chunk is not of type AgentOutput
     """
     return ReturnChunk(response=str(chunk.response.content), trace_id=response_trace_id)
+
+
+def _parse_string_to_tool_output(input_string: str) -> ToolOutput:
+    """Parses a complex string into a structured ToolOutput.
+
+    Args:
+        input_string: The string to be parsed.
+
+    Returns:
+        A ToolOutput instance with the extracted data.
+    """
+    logger.info("input_string: %s", input_string)
+    try:
+        # Extract the 'meta' value
+        meta_match = re.search(r"meta=([^ ]+)", input_string)
+        meta_value = meta_match.group(1) if meta_match else None
+        if meta_value == "None":
+            meta_value = None
+
+        # Extract the 'isError' value
+        is_error_match = re.search(r"isError=(True|False)", input_string)
+        is_error_value = is_error_match.group(1) == "True" if is_error_match else None
+
+        # Extract the 'content' value
+        text_content_match = re.search(
+            r"content=\[TextContent\(type='text', text='(.*?)', annotations=None, meta=None\)\]",
+            input_string,
+            re.DOTALL,
+        )
+
+        if text_content_match:
+            text_content = text_content_match.group(1)
+            try:
+                # First, decode the escaped string properly
+                decoded_content = text_content.encode().decode("unicode_escape")
+                content_value = TextOutput(
+                    type="text",
+                    text=json.loads(decoded_content),
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                # Fallback: try parsing the raw content directly
+                content_value = TextOutput(
+                    type="text",
+                    text=json.loads(text_content),
+                )
+        else:
+            content_value = None
+
+        if content_value is None:
+            msg = "Content value is None"
+            logger.error(msg)
+            raise ValueError(msg)
+
+        if is_error_value is None:
+            msg = "Is error value is None"
+            logger.error(msg)
+            raise ValueError(msg)
+
+        return ToolOutput(
+            meta=meta_value,
+            content=content_value,
+            is_error=is_error_value,
+        )
+
+    except (AttributeError, json.JSONDecodeError):
+        msg = "An error occurred during parsing"
+        logger.exception(msg)
+        return ToolOutput(
+            meta=None,
+            content=TextOutput(type="text", text={"error": msg}),
+            is_error=True,
+        )
