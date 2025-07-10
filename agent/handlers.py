@@ -79,7 +79,7 @@ async def respond(
                 if not is_thought_chunk:
                     continue
 
-                return_chunk = _process_agent_stream_chunk(chunk, f"th_{trace_id}")
+                return_chunk = _process_agent_stream_chunk(chunk, trace_id)
 
             case StopEvent():
                 # Signal that the thought is complete and the next chunk will be the response
@@ -128,13 +128,13 @@ def _format_messages(chat_messages: list[Message]) -> dict[str, list[dict[str, s
 
 def _process_tool_call_chunk(
     chunk: ToolCallResult,
-    thinking_trace_id: str,
+    trace_id: str,
 ) -> ReturnChunk:
     """Process a tool call chunk and return the appropriate ReturnChunk.
 
     Args:
         chunk: ToolCallResult object containing tool name and output
-        thinking_trace_id: Trace ID for the thinking phase
+        trace_id: Trace ID for the thinking phase
 
     Returns:
         ReturnChunk object with tool call details and any HTML content
@@ -164,13 +164,13 @@ def _process_tool_call_chunk(
             html_content = content.content.text.get("html_content", "")
             return ReturnChunk(
                 tool_call=tool_call_message,
-                trace_id=thinking_trace_id,
+                trace_id=trace_id,
                 html_content=html_content,
             )
 
         return ReturnChunk(
             tool_call=tool_call_message,
-            trace_id=thinking_trace_id,
+            trace_id=trace_id,
         )
     except Exception as e:
         message = f"Exception handling tool call: {e}"
@@ -179,12 +179,12 @@ def _process_tool_call_chunk(
         raise
 
 
-def _process_agent_stream_chunk(chunk: AgentStream, thinking_trace_id: str) -> ReturnChunk:
+def _process_agent_stream_chunk(chunk: AgentStream, trace_id: str) -> ReturnChunk:
     """Process an agent stream chunk and return the appropriate ReturnChunk.
 
     Args:
         chunk: AgentStream object containing the delta response
-        thinking_trace_id: Trace ID for the thinking phase
+        trace_id: Trace ID for the thinking phase
 
     Returns:
         ReturnChunk object with the processed response, adding a newline
@@ -193,28 +193,28 @@ def _process_agent_stream_chunk(chunk: AgentStream, thinking_trace_id: str) -> R
     response = str(chunk.delta)
 
     # Send the actual response chunk
-    return_chunk = ReturnChunk(response=response, trace_id=thinking_trace_id)
+    return_chunk = ReturnChunk(response=response, trace_id=trace_id, is_thinking=True)
 
     if response.endswith("}"):
         # Insert a line break after action input
         return_chunk = ReturnChunk(
             response=f"{response}\n",
-            trace_id=thinking_trace_id,
+            trace_id=trace_id,
         )
 
     return return_chunk
 
 
-def _process_stop_event(thinking_trace_id: str) -> ReturnChunk:
+def _process_stop_event(trace_id: str) -> ReturnChunk:
     """Process a stop event and return the appropriate ReturnChunk.
 
     Args:
-        thinking_trace_id: Trace ID for the thinking phase
+        trace_id: Trace ID for the thinking phase
 
     Returns:
         ReturnChunk object indicating the thinking phase is finished
     """
-    return ReturnChunk(trace_id=thinking_trace_id, is_finished=True)
+    return ReturnChunk(trace_id=trace_id, is_finished=True)
 
 
 def _process_final_answer(chunk: AgentOutput, response_trace_id: str) -> ReturnChunk:
