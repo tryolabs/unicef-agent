@@ -34,12 +34,12 @@ def set_env_vars() -> None:
         jwt_secret_key = f.read()
     with Path("/run/secrets/users").open("r") as f:
         users = f.read()
-    os.environ["LANGFUSE_PUBLIC_KEY"] = langfuse_public_key
-    os.environ["LANGFUSE_SECRET_KEY"] = langfuse_secret_key
-    os.environ["LANGFUSE_HOST"] = langfuse_host
-    os.environ["OPENAI_API_KEY"] = openai_api_key
-    os.environ["JWT_SECRET_KEY"] = jwt_secret_key
-    os.environ["USERS"] = users
+    os.environ["LANGFUSE_PUBLIC_KEY"] = langfuse_public_key.strip()
+    os.environ["LANGFUSE_SECRET_KEY"] = langfuse_secret_key.strip()
+    os.environ["LANGFUSE_HOST"] = langfuse_host.strip()
+    os.environ["OPENAI_API_KEY"] = openai_api_key.strip()
+    os.environ["JWT_SECRET_KEY"] = jwt_secret_key.strip()
+    os.environ["USERS"] = users.strip()
 
 
 async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:
