@@ -2,12 +2,12 @@ import hashlib
 import json
 import os
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from logging_config import get_logger
 from pydantic import BaseModel
 
 # Read the environment variables
@@ -16,6 +16,8 @@ JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+logger = get_logger(__name__)
 
 
 class Token(BaseModel):
@@ -38,12 +40,18 @@ class UserInDB(User):
 
 def get_users() -> list[dict[str, str]]:
     """Load users from the users.json file."""
+    users_json_file: list[dict[str, str]]
     try:
-        with Path("agent/users.json").open("r") as f:
-            return json.load(f)
+        users_file = os.getenv("USERS")
+        if not users_file:
+            msg = "USERS environment variable is not set"
+            logger.error(msg)
+            raise ValueError(msg)
+        users_json_file = json.loads(users_file)
     except FileNotFoundError:
         # Return empty list if file not found
-        return []
+        users_json_file = []
+    return users_json_file
 
 
 def get_user(username: str) -> UserInDB | None:

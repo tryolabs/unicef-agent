@@ -46,6 +46,10 @@ async def login_for_access_token(
     Returns:
         Token: Access token with bearer type and username.
     """
+    logger.info(
+        "Received /token endpoint call with username=%s",
+        form_data.username,
+    )
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
