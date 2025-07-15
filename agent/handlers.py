@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 from llama_index.core.agent.workflow import AgentOutput, AgentStream, ToolCallResult
 from llama_index.core.workflow import Event, StopEvent
 from logging_config import get_logger
-from schemas import Config, Message, ReturnChunk, TextOutput, ToolOutput
+from schemas import Message, ReturnChunk, TextOutput, ToolOutput
 
 from agent import create_agent, run_agent
 
@@ -16,7 +16,6 @@ async def handle_response(
     messages: list[Message],
     trace_id: str,
     session_id: str,
-    config: Config,
 ) -> AsyncGenerator[str, None]:
     """Handle the response by running respond, and cleaning up.
 
@@ -24,7 +23,6 @@ async def handle_response(
         messages: List of messages to process
         trace_id: Unique identifier for tracing the request
         session_id: Unique identifier for the session
-        config: The configuration to use for the agent
 
     Yields:
         JSON serialized chunks of the response
@@ -33,7 +31,7 @@ async def handle_response(
 
     logger.info("Running agent with inputs %s", formatted_messages)
 
-    async for chunk in respond(formatted_messages, trace_id, session_id, config):
+    async for chunk in respond(formatted_messages, trace_id, session_id):
         yield chunk
 
 
@@ -41,7 +39,6 @@ async def respond(
     messages: dict[str, list[dict[str, str]]],
     trace_id: str,
     session_id: str,
-    config: Config,
 ) -> AsyncGenerator[str, None]:
     """Process messages and generate a response using the agent.
 
@@ -49,13 +46,12 @@ async def respond(
         messages: List of messages to process
         trace_id: Unique identifier for tracing the request
         session_id: Unique identifier for the session
-        config: The configuration to use for the agent
 
     Yields:
         JSON serialized chunks of the response, including tool calls, agent streams,
         and the final answer
     """
-    agent = await create_agent(config)
+    agent = await create_agent()
 
     is_final_answer = False
     is_thought_chunk = True

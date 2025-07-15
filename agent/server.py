@@ -124,7 +124,6 @@ async def ask(
             chat.chat_messages,
             trace_id,
             session_id,
-            config,
         ),
         media_type="text/event-stream",
     )
