@@ -2,10 +2,11 @@ import os
 from pathlib import Path
 
 import yaml
+from config import config
 from llama_index.core.tools.function_tool import FunctionTool
 from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 from logging_config import get_logger
-from schemas import MCPConfig, Prompts
+from schemas import Prompts
 
 logger = get_logger(__name__)
 
@@ -42,26 +43,23 @@ def set_env_vars() -> None:
     os.environ["USERS"] = users.strip()
 
 
-async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:
+async def get_tools() -> list[FunctionTool]:
     """Get the tools for the agent.
-
-    Args:
-        mcp_config: The configuration to use for the MCP clients
 
     Returns:
         list[FunctionTool]: The tools for the agent
     """
-    mcp_client_datawarehouse = BasicMCPClient(mcp_config.datawarehouse_url)
+    mcp_client_datawarehouse = BasicMCPClient(config.mcp.datawarehouse_url)
     datawarehouse_tools = McpToolSpec(
         client=mcp_client_datawarehouse,
     )
     logger.info("Connecting to datawarehouse")
-    mcp_client_rag = BasicMCPClient(mcp_config.rag_url)
+    mcp_client_rag = BasicMCPClient(config.mcp.rag_url)
     rag_tools = McpToolSpec(
         client=mcp_client_rag,
     )
     logger.info("Connecting to rag")
-    mcp_client_geospatial = BasicMCPClient(mcp_config.geospatial_url)
+    mcp_client_geospatial = BasicMCPClient(config.mcp.geospatial_url)
     geospatial_tools = McpToolSpec(
         client=mcp_client_geospatial,
     )
