@@ -88,11 +88,17 @@ async def run_agent(
         name="",
     ) as root_span:
         root_span.update_trace(session_id=session_id)
+        try:
+            handler = agent.run(str(inputs))  # type: ignore[arg-type]
 
-        handler = agent.run(str(inputs))  # type: ignore[arg-type]
+            async for chunk in handler.stream_events():
+                if hasattr(chunk, "delta") and chunk.delta == "":
+                    continue
+                yield chunk
 
-        async for chunk in handler.stream_events():
-            yield chunk
-
-        response = cast("Event", await handler)
-        yield response
+            response = cast("Event", await handler)
+            yield response
+        except Exception as e:
+            msg = f"Error running agent: {e}"
+            logger.exception(msg)
+            raise ValueError(msg) from e
