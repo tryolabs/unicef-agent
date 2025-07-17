@@ -3,7 +3,7 @@ import re
 from collections.abc import AsyncGenerator
 
 from llama_index.core.agent.workflow import AgentOutput, AgentStream, ToolCallResult
-from llama_index.core.workflow import StopEvent
+from llama_index.core.workflow import Event, StopEvent
 from logging_config import get_logger
 from schemas import Config, Message, ReturnChunk, TextOutput, ToolOutput
 
@@ -65,44 +65,99 @@ async def respond(
         trace_id,
         session_id,
     ):
-        match chunk:
-            case ToolCallResult():
-                return_chunk = _process_tool_call_chunk(chunk, trace_id)
+        return_chunks, is_final_answer, is_thought_chunk = _process_chunk(
+            chunk, trace_id, is_final_answer=is_final_answer, is_thought_chunk=is_thought_chunk
+        )
 
-            case AgentStream():
-                if chunk.delta.startswith("Action"):
-                    is_thought_chunk = False
-                elif chunk.delta.startswith("Thought"):
-                    is_thought_chunk = True
-
-                # Skip non-thought chunks
-                if not is_thought_chunk:
-                    continue
-
-                return_chunk = _process_agent_stream_chunk(chunk, trace_id)
-
-            case StopEvent():
-                # Signal that the thought is complete and the next chunk will be the response
-                is_final_answer = True
-                return_chunk = _process_stop_event(trace_id)
-
-            case _ if is_final_answer:
-                if not isinstance(chunk, AgentOutput):
-                    logger.error("Unexpected chunk type: %s", type(chunk))
-                    continue
-
-                return_chunk = _process_final_answer(chunk, trace_id)
-
-            case _:
-                continue
-
-        yield json.dumps(return_chunk.model_dump())
-        yield "\n"
+        for return_chunk in return_chunks:
+            yield json.dumps(return_chunk.model_dump())
+            yield "\n"
 
     # Signal that the response is complete
     return_chunk = ReturnChunk(trace_id=trace_id, is_finished=True)
     yield json.dumps(return_chunk.model_dump())
     yield "\n"
+
+
+def _process_chunk(
+    chunk: ToolCallResult | AgentStream | StopEvent | AgentOutput | Event,
+    trace_id: str,
+    *,
+    is_final_answer: bool,
+    is_thought_chunk: bool,
+) -> tuple[list[ReturnChunk], bool, bool]:
+    """Process a single chunk and return the appropriate ReturnChunk list.
+
+    Args:
+        chunk: The chunk to process
+        trace_id: Trace ID for the current request
+        is_final_answer: Whether this is the final answer phase
+        is_thought_chunk: Whether this is a thought chunk
+
+    Returns:
+        Tuple of (return_chunks, is_final_answer, is_thought_chunk)
+    """
+    return_chunks: list[ReturnChunk] = []
+
+    match chunk:
+        case ToolCallResult():
+            return_chunks = [_process_tool_call_chunk(chunk, trace_id)]
+
+        case AgentStream():
+            return_chunks, is_thought_chunk = _process_agent_stream_logic(
+                chunk, trace_id, is_thought_chunk=is_thought_chunk
+            )
+
+        case StopEvent():
+            # Signal that the thought is complete and the next chunk will be the response
+            is_final_answer = True
+            return_chunks = [_process_stop_event(trace_id)]
+
+        case _ if is_final_answer:
+            if isinstance(chunk, AgentOutput):
+                return_chunks = [_process_final_answer(chunk, trace_id)]
+            else:
+                logger.error("Unexpected chunk type: %s", type(chunk).__name__)
+
+        case _:
+            pass
+
+    return return_chunks, is_final_answer, is_thought_chunk
+
+
+def _process_agent_stream_logic(
+    chunk: AgentStream, trace_id: str, *, is_thought_chunk: bool
+) -> tuple[list[ReturnChunk], bool]:
+    """Process AgentStream chunk logic.
+
+    Args:
+        chunk: AgentStream chunk to process
+        trace_id: Trace ID for the current request
+        is_thought_chunk: Whether this is a thought chunk
+
+    Returns:
+        Tuple of (return_chunks, is_thought_chunk)
+    """
+    return_chunks: list[ReturnChunk] = []
+    chunk_response = chunk.delta.split("Action:")
+
+    # Reconstruct the split parts with "Action:" preserved
+    if len(chunk_response) > 1:
+        chunk_response = [chunk_response[0]] + ["Action:" + part for part in chunk_response[1:]]
+
+    for r in chunk_response:
+        if r.startswith("Action"):
+            is_thought_chunk = False
+        elif r.startswith("Thought"):
+            is_thought_chunk = True
+
+        # Skip non-thought chunks
+        if not is_thought_chunk:
+            continue
+
+        return_chunks.extend(_process_agent_stream_chunk(r, trace_id))
+
+    return return_chunks, is_thought_chunk
 
 
 def _format_messages(chat_messages: list[Message]) -> dict[str, list[dict[str, str]]]:
@@ -179,30 +234,26 @@ def _process_tool_call_chunk(
         raise
 
 
-def _process_agent_stream_chunk(chunk: AgentStream, trace_id: str) -> ReturnChunk:
+def _process_agent_stream_chunk(response: str, trace_id: str) -> list[ReturnChunk]:
     """Process an agent stream chunk and return the appropriate ReturnChunk.
 
     Args:
-        chunk: AgentStream object containing the delta response
+        response: The response to process
         trace_id: Trace ID for the thinking phase
 
     Returns:
         ReturnChunk object with the processed response, adding a newline
         if the response ends with a closing brace
     """
-    response = str(chunk.delta)
-
-    # Send the actual response chunk
-    return_chunk = ReturnChunk(response=response, trace_id=trace_id, is_thinking=True)
-
-    if response.endswith("}"):
-        # Insert a line break after action input
-        return_chunk = ReturnChunk(
-            response=f"{response}\n",
-            trace_id=trace_id,
-        )
-
-    return return_chunk
+    response_lines = response.split("\n")
+    if len(response_lines) > 1:
+        response_lines = [response_lines[0]] + ["\n" + part for part in response_lines[1:]]
+    return_chunks: list[ReturnChunk] = []
+    for r in response_lines:
+        if r.find("}") != -1 or r.find("{") != -1 or r.find("#") != -1 or r.find("Action") != -1:
+            continue
+        return_chunks.append(ReturnChunk(response=r, trace_id=trace_id, is_thinking=True))
+    return return_chunks
 
 
 def _process_stop_event(trace_id: str) -> ReturnChunk:
