@@ -15,6 +15,9 @@ dependencies = [
     "llama-index-llms-openai>=0.4.7",
     "vulture>=2.14",
     "python-jose>=3.5.0",
+    "google-genai>=1.25.0",
+    "google-api-python-client>=2.176.0",
+    "google>=3.0.0",
 ]
 
 [build-system]
