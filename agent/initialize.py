@@ -40,6 +40,7 @@ def set_env_vars() -> None:
     os.environ["OPENAI_API_KEY"] = openai_api_key.strip()
     os.environ["JWT_SECRET_KEY"] = jwt_secret_key.strip()
     os.environ["USERS"] = users.strip()
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/run/secrets/vertex_auth.json"
 
 
 async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:

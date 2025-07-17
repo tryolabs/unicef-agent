@@ -8,5 +8,6 @@ mcp:
   geospatial_url: http://geospatial_mcp:6002/sse
 
 llm:
-  model: "gpt-4.1"
+  # model: "gpt-4.1"
+  model: "gemini-2.5-pro"
   temperature: 0.0
