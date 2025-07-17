@@ -7,12 +7,15 @@ from langfuse.types import TraceContext
 from llama_index.core.agent.workflow import ReActAgent
 from llama_index.core.prompts import PromptTemplate
 from llama_index.llms.litellm import LiteLLM
+from logging_config import get_logger
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
 from schemas import Config, LLMConfig
 from workflows.events import Event
 
 langfuse = get_client()
 LlamaIndexInstrumentor().instrument()
+
+logger = get_logger(__name__)
 
 
 def get_llm(llm_config: LLMConfig) -> LiteLLM:
@@ -24,6 +27,7 @@ def get_llm(llm_config: LLMConfig) -> LiteLLM:
     Returns:
         A configured ChatLiteLLM instance
     """
+    logger.info("Getting LLM with model: %s", llm_config.model)
     return LiteLLM(
         model=llm_config.model,
         temperature=llm_config.temperature,
@@ -39,6 +43,7 @@ async def create_agent(config: Config) -> ReActAgent:
     Returns:
         A compiled LangGraph agent ready to be invoked
     """
+    logger.info("Creating agent")
     prompts = get_prompts()
     tools = await get_tools(config.mcp)
     llm = get_llm(config.llm)
@@ -54,6 +59,7 @@ async def create_agent(config: Config) -> ReActAgent:
             "react_header": PromptTemplate(prompts.header_prompt),
         }
     )
+    logger.info("Agent created")
 
     return agent
 
@@ -75,6 +81,7 @@ async def run_agent(
     Yields:
         Chunks of the agent's response stream
     """
+    logger.info("Running agent")
     with langfuse.start_as_current_span(
         trace_context=TraceContext(trace_id=trace_id),
         input=inputs,
@@ -88,5 +95,4 @@ async def run_agent(
             yield chunk
 
         response = cast("Event", await handler)
-
         yield response
