@@ -1,8 +1,11 @@
 import json
+import os
 import sys
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+
+from langfuse import Langfuse
 
 # Add the agent directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "agent"))
@@ -21,6 +24,12 @@ from benchmark.test_data import (
 )
 
 load_dotenv(override=True)
+
+langfuse = Langfuse(
+    secret_key=os.environ["LANGFUSE_SECRET_KEY"],
+    public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
+    host=os.environ["LANGFUSE_HOST"],
+)
 
 logger = get_logger(__name__)
 
@@ -45,8 +54,8 @@ try:
         with SESSION_FILE.open("w") as f:
             f.write(session_id)
             logger.info("Created new session ID: %s", session_id)
-except Exception as e:
-    logger.exception("Error handling session ID file: %s", e)
+except Exception:
+    logger.exception("Error handling session ID file")
     session_id = str(uuid.uuid4())
     logger.info("Using fallback session ID: %s", session_id)
 
@@ -80,7 +89,7 @@ score_textual_answer_prompt = prompts["score_textual_answer_prompt"]
 
 
 @pytest.mark.parametrize(("question", "expected", "response_type", "variation"), benchmark_list)
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_agent_question(
     question: str, expected: str | int, response_type: str, variation: str
 ) -> None:
@@ -89,17 +98,18 @@ async def test_agent_question(
     message = Message(role="user", content=question, trace_id=trace_id)
 
     final_answer = ""
-    async for chunk in handle_response([message], trace_id, session_id):
+    async for chunk in handle_response([message], trace_id, session_id, tags=["benchmark"]):
         try:
             json_chunk = json.loads(chunk)
         except json.JSONDecodeError:
             continue
-        if json_chunk.get("trace_id", "").startswith("r_"):
+        if json_chunk.get("is_final_answer", False):
             final_answer += json_chunk.get("response", "")
+            break
     if response_type == "numerical":
-        evaluate_numerical_answer("r_" + trace_id, question, int(expected), final_answer, variation)
+        evaluate_numerical_answer(trace_id, question, int(expected), final_answer, variation)
     else:
-        evaluate_textual_answer("r_" + trace_id, question, str(expected), final_answer, variation)
+        evaluate_textual_answer(trace_id, question, str(expected), final_answer, variation)
 
 
 def evaluate_numerical_answer(
@@ -117,18 +127,19 @@ def evaluate_numerical_answer(
             f"{is_correct}\t{question}\t{variation}\t{expected}\t{numerical_value}\t{answer}\n"
         )
 
-    # langfuse.score(
-    #     trace_id=trace_id,
-    #     name="answer_correctness",
-    #     value="correct" if is_correct else "incorrect",
-    #     comment=f"Expected: {expected}, Got: {answer}",
-    # )
-
-    assert is_correct, (
-        f"Answer doesn't match expected value for question: {question}\n\
-        Expected: {expected}\nGot: {numerical_value}\n\
-        Full answer: {answer}"
+    langfuse.create_score(
+        trace_id=trace_id,
+        name="answer_correctness",
+        value="correct" if is_correct else "incorrect",
+        comment=f"Expected: {expected}, Got: {answer}",
     )
+
+    if not is_correct:
+        pytest.fail(
+            f"Answer doesn't match expected value for question: {question}\n"
+            f"Expected: {expected}\nGot: {numerical_value}\n"
+            f"Full answer: {answer}"
+        )
 
 
 def evaluate_textual_answer(
@@ -144,25 +155,23 @@ def evaluate_textual_answer(
             f"{result.conciseness.result}\t{result.conciseness.justification}\n"
         )
 
-    # langfuse.score(
-    #     trace_id=trace_id,
-    #     name="faithfulness",
-    #     value=result.faithfulness.result,
-    #     comment=result.faithfulness.justification,
-    # )
+    langfuse.create_score(
+        trace_id=trace_id,
+        name="faithfulness",
+        value=result.faithfulness.result,
+        comment=result.faithfulness.justification,
+    )
 
-    # langfuse.score(
-    #     trace_id=trace_id,
-    #     name="completeness",
-    #     value=result.completeness.result,
-    #     comment=result.completeness.justification,
-    # )
+    langfuse.create_score(
+        trace_id=trace_id,
+        name="completeness",
+        value=result.completeness.result,
+        comment=result.completeness.justification,
+    )
 
-    # langfuse.score(
-    #     trace_id=trace_id,
-    #     name="conciseness",
-    #     value=result.conciseness.result,
-    #     comment=result.conciseness.justification,
-    # )
-
-    assert True
+    langfuse.create_score(
+        trace_id=trace_id,
+        name="conciseness",
+        value=result.conciseness.result,
+        comment=result.conciseness.justification,
+    )
