@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, HTTPException, status
@@ -42,12 +43,13 @@ def get_users() -> list[dict[str, str]]:
     """Load users from the users.json file."""
     users_json_file: list[dict[str, str]]
     try:
-        users_file = os.getenv("USERS")
+        users_file = os.getenv("USERS_PATH")
         if not users_file:
-            msg = "USERS environment variable is not set"
+            msg = "USERS_PATH environment variable is not set"
             logger.error(msg)
             raise ValueError(msg)
-        users_json_file = json.loads(users_file)
+        with Path(users_file).open("r") as f:
+            users_json_file = json.load(f)
     except FileNotFoundError:
         # Return empty list if file not found
         users_json_file = []

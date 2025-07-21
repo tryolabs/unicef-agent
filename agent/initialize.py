@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import yaml
+from dotenv import load_dotenv
 from llama_index.core.tools.function_tool import FunctionTool
 from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 from logging_config import get_logger
@@ -13,34 +14,80 @@ logger = get_logger(__name__)
 def initialize_app() -> None:
     """Initialize the app."""
     logger.info("Initializing app")
+    load_dotenv(override=True)
     set_env_vars()
+
+
+def _read_secret_or_env(secret_name: str, env_var_name: str) -> str:
+    """Read from Docker secret file first, then fallback to environment variable.
+
+    Args:
+        secret_name: Name of the Docker secret file (without path)
+        env_var_name: Name of the environment variable
+
+    Returns:
+        str: The secret value
+
+    Raises:
+        ValueError: If neither secret file nor environment variable is available
+    """
+    secret_path = Path(f"/run/secrets/{secret_name}")
+
+    # First try Docker secrets
+    if secret_path.exists():
+        logger.debug("Reading %s from Docker secret", secret_name)
+        return secret_path.read_text().strip()
+
+    # Fallback to environment variable
+    env_value = os.environ.get(env_var_name)
+    if env_value:
+        logger.debug("Reading %s from environment variable", env_var_name)
+        return env_value.strip()
+
+    msg = "Neither Docker secret '%s' nor environment variable '%s' is available"
+    logger.error(msg, secret_name, env_var_name)
+    raise ValueError(msg % (secret_name, env_var_name))
 
 
 def set_env_vars() -> None:
     """Set the environment variables.
 
+    This function works in both Docker (using secrets) and local environments (using env vars).
+
     Raises:
         ValueError: If the environment variables are not set.
     """
-    with Path("/run/secrets/langfuse_public_key").open("r") as f:
-        langfuse_public_key = f.read()
-    with Path("/run/secrets/langfuse_secret_key").open("r") as f:
-        langfuse_secret_key = f.read()
-    with Path("/run/secrets/langfuse_host").open("r") as f:
-        langfuse_host = f.read()
-    with Path("/run/secrets/openai_api_key").open("r") as f:
-        openai_api_key = f.read()
-    with Path("/run/secrets/jwt_secret_key").open("r") as f:
-        jwt_secret_key = f.read()
-    with Path("/run/secrets/users").open("r") as f:
-        users = f.read()
-    os.environ["LANGFUSE_PUBLIC_KEY"] = langfuse_public_key.strip()
-    os.environ["LANGFUSE_SECRET_KEY"] = langfuse_secret_key.strip()
-    os.environ["LANGFUSE_HOST"] = langfuse_host.strip()
-    os.environ["OPENAI_API_KEY"] = openai_api_key.strip()
-    os.environ["JWT_SECRET_KEY"] = jwt_secret_key.strip()
-    os.environ["USERS"] = users.strip()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/run/secrets/vertex_auth.json"
+    try:
+        # Read secrets with fallback to environment variables
+        os.environ["LANGFUSE_PUBLIC_KEY"] = _read_secret_or_env(
+            "langfuse_public_key", "LANGFUSE_PUBLIC_KEY"
+        )
+        os.environ["LANGFUSE_SECRET_KEY"] = _read_secret_or_env(
+            "langfuse_secret_key", "LANGFUSE_SECRET_KEY"
+        )
+        os.environ["LANGFUSE_HOST"] = _read_secret_or_env("langfuse_host", "LANGFUSE_HOST")
+        os.environ["OPENAI_API_KEY"] = _read_secret_or_env("openai_api_key", "OPENAI_API_KEY")
+        os.environ["JWT_SECRET_KEY"] = _read_secret_or_env("jwt_secret_key", "JWT_SECRET_KEY")
+        os.environ["USERS_PATH"] = _read_secret_or_env("users", "USERS_PATH")
+
+        # Handle Google Cloud credentials
+        vertex_auth_secret = Path("/run/secrets/vertex_auth.json")
+        if vertex_auth_secret.exists():
+            logger.debug("Using Docker secret for Google Cloud credentials")
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(vertex_auth_secret)
+        elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            logger.debug("Using environment variable for Google Cloud credentials")
+            # Environment variable already set, no action needed
+        else:
+            logger.warning(
+                "No Google Cloud credentials found.\
+                Set GOOGLE_APPLICATION_CREDENTIALS environment variable for local development."
+            )
+
+    except ValueError as e:
+        msg = "Failed to set environment variables: %s"
+        logger.exception(msg)
+        raise ValueError(msg) from e
 
 
 async def get_tools(mcp_config: MCPConfig) -> list[FunctionTool]:
