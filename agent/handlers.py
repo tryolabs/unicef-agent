@@ -16,6 +16,7 @@ async def handle_response(
     messages: list[Message],
     trace_id: str,
     session_id: str,
+    tags: list[str] | None = None,
 ) -> AsyncGenerator[str, None]:
     """Handle the response by running respond, and cleaning up.
 
@@ -23,7 +24,7 @@ async def handle_response(
         messages: List of messages to process
         trace_id: Unique identifier for tracing the request
         session_id: Unique identifier for the session
-
+        tags: List of tags to associate with the trace
     Yields:
         JSON serialized chunks of the response
     """
@@ -31,7 +32,7 @@ async def handle_response(
 
     logger.info("Running agent with inputs %s", formatted_messages)
 
-    async for chunk in respond(formatted_messages, trace_id, session_id):
+    async for chunk in respond(formatted_messages, trace_id, session_id, tags):
         yield chunk
 
 
@@ -39,6 +40,7 @@ async def respond(
     messages: dict[str, list[dict[str, str]]],
     trace_id: str,
     session_id: str,
+    tags: list[str] | None = None,
 ) -> AsyncGenerator[str, None]:
     """Process messages and generate a response using the agent.
 
@@ -46,7 +48,7 @@ async def respond(
         messages: List of messages to process
         trace_id: Unique identifier for tracing the request
         session_id: Unique identifier for the session
-
+        tags: List of tags to associate with the trace
     Yields:
         JSON serialized chunks of the response, including tool calls, agent streams,
         and the final answer
@@ -60,6 +62,7 @@ async def respond(
         messages,
         trace_id,
         session_id,
+        tags,
     ):
         return_chunks, is_final_answer, is_thought_chunk = _process_chunk(
             chunk, trace_id, is_final_answer=is_final_answer, is_thought_chunk=is_thought_chunk
@@ -276,7 +279,11 @@ def _process_final_answer(chunk: AgentOutput, response_trace_id: str) -> ReturnC
 
     Logs an error if the chunk is not of type AgentOutput
     """
-    return ReturnChunk(response=str(chunk.response.content), trace_id=response_trace_id)
+    return ReturnChunk(
+        response=str(chunk.response.content),
+        trace_id=response_trace_id,
+        is_final_answer=True,
+    )
 
 
 def _parse_string_to_tool_output(input_string: str) -> ToolOutput:
