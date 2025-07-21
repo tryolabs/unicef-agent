@@ -21,6 +21,7 @@ class ReturnChunk(BaseModel):
     tool_call: str = ""
     is_finished: bool = False
     html_content: str = ""
+    is_final_answer: bool = False
 
 
 class TextOutput(BaseModel):

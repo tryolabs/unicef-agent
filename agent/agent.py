@@ -24,7 +24,7 @@ def get_llm() -> LiteLLM:
     Returns:
         A configured ChatLiteLLM instance
     """
-    logger.info("Getting LLM with model: %s", llm_config.model)
+    logger.info("Getting LLM with model: %s", config.llm.model)
     return LiteLLM(
         model=config.llm.model,
         temperature=config.llm.temperature,
@@ -63,6 +63,7 @@ async def run_agent(
     inputs: dict[str, list[dict[str, str]]],
     trace_id: str,
     session_id: str,
+    tags: list[str] | None = None,
 ) -> AsyncGenerator[Event, None]:
     """Run a LangGraph agent with the given inputs and stream the results.
 
@@ -71,6 +72,7 @@ async def run_agent(
         inputs: Dictionary of inputs to provide to the agent
         trace_id: The trace ID to associate with this model
         session_id: The session ID to associate with this model
+        tags: List of tags to associate with the trace
 
     Yields:
         Chunks of the agent's response stream
@@ -81,7 +83,7 @@ async def run_agent(
         input=inputs,
         name="",
     ) as root_span:
-        root_span.update_trace(session_id=session_id)
+        root_span.update_trace(session_id=session_id, tags=tags)
         try:
             handler = agent.run(str(inputs))  # type: ignore[arg-type]
 
