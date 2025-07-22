@@ -1,0 +1,17 @@
+# Production Configuration
+# Used when ENVIRONMENT=prod
+
+server:
+  port: 8000
+  host: 0.0.0.0
+
+mcp:
+  # Docker service names for production deployment
+  datawarehouse_url: http://datawarehouse_mcp:6000/sse
+  rag_url: http://rag_mcp:6001/sse
+  geospatial_url: http://geospatial_mcp:6002/sse
+
+llm:
+  model: "gpt-4.1"
+  # model: "gemini-2.5-pro"
+  temperature: 0.0

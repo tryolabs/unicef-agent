@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import yaml
@@ -20,8 +21,11 @@ def load_config(config_path: Path | None = None) -> Config:
         FileNotFoundError: If config file doesn't exist.
         ValueError: If config contains invalid values.
     """
+    config_file = "config-prod.yaml" if os.getenv("ENVIRONMENT", "dev") == "prod" else "config.yaml"
+
     if config_path is None:
-        config_path = Path(__file__).parent / "config.yaml"
+        logger.info("Loading configuration from %s", config_file)
+        config_path = Path(__file__).parent / config_file
 
     if not config_path.exists():
         msg = "Configuration file not found: %s"
