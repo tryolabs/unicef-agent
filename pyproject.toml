@@ -18,6 +18,8 @@ dependencies = [
     "google-genai>=1.25.0",
     "google-api-python-client>=2.176.0",
     "google>=3.0.0",
+    "matplotlib>=3.10.3",
+    "pytest-xdist>=3.8.0",
 ]
 
 [build-system]
