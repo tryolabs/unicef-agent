@@ -51,7 +51,18 @@ uv sync
 
 ### Configuration
 
-**`agent/config.yaml`**:
+The application supports environment-specific configuration files for better separation between development, production, and testing environments.
+
+#### Environment-Based Configuration
+
+The system automatically selects the appropriate configuration file based on the `ENVIRONMENT` environment variable:
+
+- **Production** (`ENVIRONMENT=prod`): Uses `config-prod.yaml`
+- **Default** (`ENVIRONMENT=dev`): Uses `config.yaml`
+
+#### Configuration Files
+
+**`agent/config.yaml`** (Development):
 
 ```yaml
 llm:
