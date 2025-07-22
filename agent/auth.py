@@ -51,8 +51,12 @@ def get_users() -> list[dict[str, str]]:
         with Path(users_file).open("r") as f:
             users_json_file = json.load(f)
     except FileNotFoundError:
-        # Return empty list if file not found
-        users_json_file = []
+        try:
+            # Try to load users from the env variable
+            users_json_file = json.loads(users_file)
+        except FileNotFoundError:
+            # Return empty list if file not found
+            users_json_file = []
     return users_json_file
 
 
