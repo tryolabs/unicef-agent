@@ -70,6 +70,13 @@ def set_env_vars() -> None:
         os.environ["OPENAI_API_KEY"] = _read_secret_or_env("openai_api_key", "OPENAI_API_KEY")
         os.environ["JWT_SECRET_KEY"] = _read_secret_or_env("jwt_secret_key", "JWT_SECRET_KEY")
         os.environ["USERS_PATH"] = _read_secret_or_env("users", "USERS_PATH")
+        os.environ["AWS_ACCESS_KEY_ID"] = _read_secret_or_env(
+            "aws_access_key_id", "AWS_ACCESS_KEY_ID"
+        )
+        os.environ["AWS_SECRET_ACCESS_KEY"] = _read_secret_or_env(
+            "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY"
+        )
+        os.environ["AWS_REGION_NAME"] = _read_secret_or_env("aws_region_name", "AWS_REGION_NAME")
 
         # Handle Google Cloud credentials
         vertex_auth_secret = Path("/run/secrets/vertex_auth.json")
