@@ -20,6 +20,7 @@ dependencies = [
     "google>=3.0.0",
     "matplotlib>=3.10.3",
     "pytest-xdist>=3.8.0",
+    "boto3>=1.39.11",
 ]
 
 [build-system]
