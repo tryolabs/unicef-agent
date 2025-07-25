@@ -77,6 +77,9 @@ def set_env_vars() -> None:
             "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY"
         )
         os.environ["AWS_REGION_NAME"] = _read_secret_or_env("aws_region_name", "AWS_REGION_NAME")
+        os.environ["AWS_SESSION_TOKEN"] = _read_secret_or_env(
+            "aws_session_token", "AWS_SESSION_TOKEN"
+        )
 
         # Handle Google Cloud credentials
         vertex_auth_secret = Path("/run/secrets/vertex_auth.json")
