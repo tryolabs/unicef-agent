@@ -28,6 +28,7 @@ def get_llm() -> LiteLLM:
     return LiteLLM(
         model=config.llm.model,
         temperature=config.llm.temperature,
+        additional_kwargs={"stop": ["Observation:"]},
     )
 
 
@@ -46,7 +47,6 @@ async def create_agent() -> ReActAgent:
         tools=tools,
         llm=llm,
         system_prompt=prompts.system_prompt,
-        additional_kwargs={"stop": ["Observation:"]},
     )
 
     agent.update_prompts(
