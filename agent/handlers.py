@@ -149,6 +149,7 @@ def _process_agent_stream_logic(
             is_thought_chunk = False
         elif "Thought" in r:
             chunk_response[i] = "Thought:" + r.split("Thought:")[-1]
+            is_thought_chunk = True
 
         # Skip non-thought chunks
         if not is_thought_chunk:

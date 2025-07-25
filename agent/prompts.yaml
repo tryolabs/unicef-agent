@@ -20,6 +20,8 @@ header_prompt: |
   Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world", "num_beams": 5}})
   ```
 
+  DO NOT include the actions in the thought, only include the thought in natural language.
+
   Please ALWAYS start with a Thought and add new lines between the thought, action, and action input.
 
   NEVER surround your response with markdown code markers. You may use code markers within your response if you need to.
