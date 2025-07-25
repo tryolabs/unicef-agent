@@ -144,11 +144,11 @@ def _process_agent_stream_logic(
     if len(chunk_response) > 1:
         chunk_response = [chunk_response[0]] + ["Action:" + part for part in chunk_response[1:]]
 
-    for r in chunk_response:
+    for i, r in enumerate(chunk_response):
         if r.startswith("Action"):
             is_thought_chunk = False
-        elif r.startswith("Thought"):
-            is_thought_chunk = True
+        elif "Thought" in r:
+            chunk_response[i] = "Thought:" + r.split("Thought:")[-1]
 
         # Skip non-thought chunks
         if not is_thought_chunk:
