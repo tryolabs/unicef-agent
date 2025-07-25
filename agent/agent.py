@@ -46,6 +46,7 @@ async def create_agent() -> ReActAgent:
         tools=tools,
         llm=llm,
         system_prompt=prompts.system_prompt,
+        additional_kwargs={"stop": ["Observation:"]},
     )
 
     agent.update_prompts(
