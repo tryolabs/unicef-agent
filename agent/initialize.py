@@ -50,6 +50,30 @@ def _read_secret_or_env(secret_name: str, env_var_name: str) -> str:
     raise ValueError(msg % (secret_name, env_var_name))
 
 
+def set_llm_env_vars() -> None:
+    """Set the environment variables for the LLM."""
+    match config.llm.provider:
+        case "openai":
+            os.environ["OPENAI_API_KEY"] = _read_secret_or_env("openai_api_key", "OPENAI_API_KEY")
+        case "bedrock":
+            os.environ["AWS_BEARER_TOKEN_BEDROCK"] = _read_secret_or_env(
+                "aws_bearer_token_bedrock", "AWS_BEARER_TOKEN_BEDROCK"
+            )
+        case "vertexai":
+            vertex_auth_secret = Path("/run/secrets/vertex_auth.json")
+            if vertex_auth_secret.exists():
+                logger.debug("Using Docker secret for Google Cloud credentials")
+                os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(vertex_auth_secret)
+            elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+                logger.debug("Using environment variable for Google Cloud credentials")
+                # Environment variable already set, no action needed
+            else:
+                logger.warning(
+                    "No Google Cloud credentials found.\
+                    Set GOOGLE_APPLICATION_CREDENTIALS environment variable for local development."
+                )
+
+
 def set_env_vars() -> None:
     """Set the environment variables.
 
@@ -67,33 +91,10 @@ def set_env_vars() -> None:
             "langfuse_secret_key", "LANGFUSE_SECRET_KEY"
         )
         os.environ["LANGFUSE_HOST"] = _read_secret_or_env("langfuse_host", "LANGFUSE_HOST")
-        os.environ["OPENAI_API_KEY"] = _read_secret_or_env("openai_api_key", "OPENAI_API_KEY")
         os.environ["JWT_SECRET_KEY"] = _read_secret_or_env("jwt_secret_key", "JWT_SECRET_KEY")
         os.environ["USERS_PATH"] = _read_secret_or_env("users", "USERS_PATH")
-        os.environ["AWS_ACCESS_KEY_ID"] = _read_secret_or_env(
-            "aws_access_key_id", "AWS_ACCESS_KEY_ID"
-        )
-        os.environ["AWS_SECRET_ACCESS_KEY"] = _read_secret_or_env(
-            "aws_secret_access_key", "AWS_SECRET_ACCESS_KEY"
-        )
-        os.environ["AWS_REGION_NAME"] = _read_secret_or_env("aws_region_name", "AWS_REGION_NAME")
-        os.environ["AWS_SESSION_TOKEN"] = _read_secret_or_env(
-            "aws_session_token", "AWS_SESSION_TOKEN"
-        )
 
-        # Handle Google Cloud credentials
-        vertex_auth_secret = Path("/run/secrets/vertex_auth.json")
-        if vertex_auth_secret.exists():
-            logger.debug("Using Docker secret for Google Cloud credentials")
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(vertex_auth_secret)
-        elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
-            logger.debug("Using environment variable for Google Cloud credentials")
-            # Environment variable already set, no action needed
-        else:
-            logger.warning(
-                "No Google Cloud credentials found.\
-                Set GOOGLE_APPLICATION_CREDENTIALS environment variable for local development."
-            )
+        set_llm_env_vars()
 
     except ValueError as e:
         msg = "Failed to set environment variables: %s"

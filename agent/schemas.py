@@ -51,11 +51,15 @@ class ServerConfig(BaseModel):
     host: str
 
 
+PROVIDERS = Literal["bedrock", "openai", "vertexai"]
+
+
 class LLMConfig(BaseModel):
     """LLM configuration settings."""
 
     model: str
     temperature: float
+    provider: PROVIDERS
 
 
 class MCPConfig(BaseModel):
