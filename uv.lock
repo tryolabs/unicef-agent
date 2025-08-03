@@ -18,6 +18,7 @@ dependencies = [
     { name = "google-genai" },
     { name = "ipykernel" },
     { name = "langfuse" },
+    { name = "litellm" },
     { name = "llama-index" },
     { name = "llama-index-llms-litellm" },
     { name = "llama-index-llms-openai" },
@@ -54,6 +55,7 @@ requires-dist = [
     { name = "google-genai", specifier = ">=1.25.0" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "langfuse", extras = ["llama-index"], specifier = ">=3.0.3" },
+    { name = "litellm", git = "https://github.com/BerriAI/litellm.git" },
     { name = "llama-index", extras = ["litellm", "llms"], specifier = ">=0.12.43" },
     { name = "llama-index-llms-litellm", specifier = ">=0.5.1" },
     { name = "llama-index-llms-openai", specifier = ">=0.4.7" },
@@ -1515,8 +1517,8 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.73.1"
-source = { registry = "https://pypi.org/simple" }
+version = "1.74.15"
+source = { git = "https://github.com/BerriAI/litellm.git#98102e28046ec59a36897220f1a437a3a91a0444" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
@@ -1529,10 +1531,6 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "tiktoken" },
     { name = "tokenizers" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/2e/d1bb4ab457e17ff52854b9d07d94f430c173db933da5b366516f5376c5de/litellm-1.73.1.tar.gz", hash = "sha256:33ad55ff051bf925419619ec37f32949decdc52a6109c8c0700cfb1209696590", size = 8667338 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/c6/a82c14d4dabc0ced101a44d9c6b2224f4405fae03e3bff4817ae73237f0c/litellm-1.73.1-py3-none-any.whl", hash = "sha256:4a1c21c3ab3902874c4a4ea1cfd9bf4d2b470829ab6a4ee776b32f81d26bdbc6", size = 8370323 },
 ]
 
 [[package]]
