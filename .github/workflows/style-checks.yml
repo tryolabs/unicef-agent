@@ -23,10 +23,10 @@ jobs:
         run: uv sync --frozen
 
       - name: Check linting with Ruff
-        run: uv run ruff check
+        run: uv run ruff check --exclude benchmark/questions --exclude '*.ipynb'
 
       - name: Check format with Ruff
-        run: uv run ruff format --check
+        run: uv run ruff format --check --exclude benchmark/questions --exclude '*.ipynb'
 
       - name: Check docstring coverage
         run: uv run docstr-coverage ./**/*.py --fail-under 20 --verbose=2 --skip-file-doc --skip-init
