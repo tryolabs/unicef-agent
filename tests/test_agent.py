@@ -28,14 +28,14 @@ class TestGetLLM:
         mock_instance = MagicMock()
         mock_litellm.return_value = mock_instance
 
-        llm_config = LLMConfig(model="gpt-4o-mini", temperature=0.5)
+        llm_config = LLMConfig(model="gpt-4o-mini", temperature=0.5, provider="openai")
 
         result = get_llm(llm_config)
 
         mock_litellm.assert_called_once_with(
             model="gpt-4o-mini",
             temperature=0.5,
-            openai_api_key="test-key",  # pragma: allowlist secret
+            additional_kwargs={"stop": ["Observation:"]},
         )
         assert result == mock_instance
 
@@ -43,7 +43,6 @@ class TestGetLLM:
         os.environ,
         {
             "MODEL_NAME": "gpt-4",
-            "OPENAI_API_KEY": "custom-key",  # pragma: allowlist secret
             "LANGFUSE_PROJECT_ID": "custom-project",
         },
     )
@@ -53,32 +52,14 @@ class TestGetLLM:
         mock_instance = MagicMock()
         mock_litellm.return_value = mock_instance
 
-        llm_config = LLMConfig(model="gpt-4", temperature=0.7)
+        llm_config = LLMConfig(model="gpt-4", temperature=0.7, provider="openai")
 
         result = get_llm(llm_config)
 
         mock_litellm.assert_called_once_with(
             model="gpt-4",
             temperature=0.7,
-            openai_api_key="custom-key",  # pragma: allowlist secret
-        )
-        assert result == mock_instance
-
-    @patch.dict(os.environ, {}, clear=True)
-    @patch("agent.LiteLLM")
-    def test_get_llm_with_missing_env_vars(self, mock_litellm: MagicMock) -> None:
-        """Test get_llm function with missing environment variables."""
-        mock_instance = MagicMock()
-        mock_litellm.return_value = mock_instance
-
-        llm_config = LLMConfig(model="gpt-4o-mini", temperature=0.3)
-
-        result = get_llm(llm_config)
-
-        mock_litellm.assert_called_once_with(
-            model="gpt-4o-mini",
-            temperature=0.3,
-            openai_api_key=None,
+            additional_kwargs={"stop": ["Observation:"]},
         )
         assert result == mock_instance
 
@@ -92,9 +73,11 @@ class TestCreateAgent:
         return Config(
             server=ServerConfig(host="localhost", port=8000),
             mcp=MCPConfig(
-                datawarehouse_url="http://localhost:3001", rag_url="http://localhost:3002"
+                datawarehouse_url="http://localhost:3001",
+                rag_url="http://localhost:3002",
+                geospatial_url="http://localhost:3003",
             ),
-            llm=LLMConfig(model="gpt-4o-mini", temperature=0.0),
+            llm=LLMConfig(model="gpt-4o-mini", temperature=0.0, provider="openai"),
         )
 
     @patch("agent.get_llm")
@@ -163,9 +146,11 @@ class TestCreateAgent:
         config = Config(
             server=ServerConfig(host="localhost", port=8000),
             mcp=MCPConfig(
-                datawarehouse_url="http://localhost:3001", rag_url="http://localhost:3002"
+                datawarehouse_url="http://localhost:3001",
+                rag_url="http://localhost:3002",
+                geospatial_url="http://localhost:3003",
             ),
-            llm=LLMConfig(model="gpt-4", temperature=0.8),
+            llm=LLMConfig(model="gpt-4", temperature=0.8, provider="openai"),
         )
 
         mock_prompts_obj = MagicMock()

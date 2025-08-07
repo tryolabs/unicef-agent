@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from llama_index.core.tools.function_tool import FunctionTool
 from llama_index.tools.mcp import BasicMCPClient, McpToolSpec
 from logging_config import get_logger
-from schemas import Prompts
+from schemas import MCPConfig, Prompts
 
 logger = get_logger(__name__)
 
@@ -102,12 +102,15 @@ def set_env_vars() -> None:
         raise ValueError(msg) from e
 
 
-async def get_tools() -> list[FunctionTool]:
+async def get_tools(mcp_config: MCPConfig | None = None) -> list[FunctionTool]:
     """Get the tools for the agent.
 
     Returns:
         list[FunctionTool]: The tools for the agent
     """
+    if mcp_config is None:
+        mcp_config = config.mcp
+
     mcp_client_datawarehouse = BasicMCPClient(config.mcp.datawarehouse_url)
     datawarehouse_tools = McpToolSpec(
         client=mcp_client_datawarehouse,

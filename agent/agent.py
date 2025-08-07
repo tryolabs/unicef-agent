@@ -10,6 +10,7 @@ from llama_index.core.prompts import PromptTemplate
 from llama_index.llms.litellm import LiteLLM
 from logging_config import get_logger
 from openinference.instrumentation.llama_index import LlamaIndexInstrumentor
+from schemas import Config, LLMConfig
 from workflows.events import Event
 
 langfuse = get_client()
@@ -18,30 +19,36 @@ LlamaIndexInstrumentor().instrument()
 logger = get_logger(__name__)
 
 
-def get_llm() -> LiteLLM:
+def get_llm(specific_config: LLMConfig | None = None) -> LiteLLM:
     """Get the LLM model.
 
     Returns:
         A configured ChatLiteLLM instance
     """
-    logger.info("Getting LLM with model: %s", config.llm.model)
+    if specific_config is None:
+        specific_config = config.llm
+
+    logger.info("Getting LLM with model: %s", specific_config.model)
     return LiteLLM(
-        model=config.llm.model,
-        temperature=config.llm.temperature,
+        model=specific_config.model,
+        temperature=specific_config.temperature,
         additional_kwargs={"stop": ["Observation:"]},
     )
 
 
-async def create_agent() -> ReActAgent:
+async def create_agent(specific_config: Config | None = None) -> ReActAgent:
     """Create a LangGraph ReAct agent with the given LLM, tools and system prompt.
 
     Returns:
         A compiled LangGraph agent ready to be invoked
     """
+    if specific_config is None:
+        specific_config = config
+
     logger.info("Creating agent")
     prompts = get_prompts()
-    tools = await get_tools()
-    llm = get_llm()
+    tools = await get_tools(specific_config.mcp)
+    llm = get_llm(specific_config.llm)
 
     agent = ReActAgent(
         tools=tools,
