@@ -4,7 +4,16 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from fastapi import status
 from fastapi.testclient import TestClient
-from server import app
+from server import User, app, get_current_user
+
+# Override authentication dependency for tests
+
+
+def override_get_current_user() -> User:  # type: ignore[valid-type]
+    return User(username="test-user")
+
+
+app.dependency_overrides[get_current_user] = override_get_current_user
 
 
 class TestServer:
