@@ -37,10 +37,10 @@ def get_llm(specific_config: LLMConfig | None = None) -> LiteLLM:
 
 
 async def create_agent(specific_config: Config | None = None) -> ReActAgent:
-    """Create a LangGraph ReAct agent with the given LLM, tools and system prompt.
+    """Create a ReAct agent with the given LLM, tools and system prompt.
 
     Returns:
-        A compiled LangGraph agent ready to be invoked
+        A compiled ReAct agent ready to be invoked
     """
     if specific_config is None:
         specific_config = config
@@ -73,10 +73,10 @@ async def run_agent(
     session_id: str,
     tags: list[str] | None = None,
 ) -> AsyncGenerator[Event, None]:
-    """Run a LangGraph agent with the given inputs and stream the results.
+    """Run a ReAct agent with the given inputs and stream the results.
 
     Args:
-        agent: The compiled LangGraph agent to run
+        agent: The compiled ReAct agent to run
         inputs: Dictionary of inputs to provide to the agent
         trace_id: The trace ID to associate with this model
         session_id: The session ID to associate with this model
