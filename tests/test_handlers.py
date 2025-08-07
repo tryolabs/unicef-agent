@@ -172,7 +172,7 @@ class TestHandlers:
             llm=LLMConfig(model="gpt-4o-mini", temperature=0.0),
         )
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_handle_response_with_empty_messages(self) -> None:
         """Test handle_response function with empty messages."""
         messages: list[Message] = []
@@ -185,7 +185,7 @@ class TestHandlers:
         # Should return some response even with empty messages
         assert isinstance(chunks, list)
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_handle_response_with_single_message(self) -> None:
         """Test handle_response function with a single message."""
         messages = [
@@ -200,7 +200,7 @@ class TestHandlers:
         assert isinstance(chunks, list)
         assert len(chunks) > 0
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_handle_response_with_multiple_messages(self) -> None:
         """Test handle_response function with multiple messages."""
         messages = [
@@ -217,7 +217,7 @@ class TestHandlers:
         assert isinstance(chunks, list)
         assert len(chunks) > 0
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_respond_with_formatted_messages(self) -> None:
         """Test respond function with properly formatted messages."""
         formatted_messages = {
@@ -233,7 +233,7 @@ class TestHandlers:
         assert isinstance(chunks, list)
         assert len(chunks) > 0
 
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_respond_with_empty_formatted_messages(self) -> None:
         """Test respond function with empty formatted messages."""
         formatted_messages: dict[str, list[dict[str, str]]] = {"messages": []}

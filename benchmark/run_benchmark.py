@@ -89,7 +89,7 @@ score_textual_answer_prompt = prompts["score_textual_answer_prompt"]
 
 
 @pytest.mark.parametrize(("question", "expected", "response_type", "variation"), benchmark_list)
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_agent_question(
     question: str, expected: str | int, response_type: str, variation: str
 ) -> None:

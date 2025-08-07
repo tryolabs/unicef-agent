@@ -67,7 +67,7 @@ class TestGetLLM:
 class TestCreateAgent:
     """Test cases for the create_agent function."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def sample_config(self) -> Config:
         """Sample configuration for testing."""
         return Config(
@@ -84,7 +84,7 @@ class TestCreateAgent:
     @patch("agent.get_tools")
     @patch("agent.get_prompts")
     @patch("agent.ReActAgent")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     def test_create_agent_with_default_parameters(
         self,
         mock_react_agent: MagicMock,
@@ -129,7 +129,7 @@ class TestCreateAgent:
     @patch("agent.get_tools")
     @patch("agent.get_prompts")
     @patch("agent.ReActAgent")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_create_agent_with_custom_temperature(
         self,
         mock_react_agent: MagicMock,
@@ -181,7 +181,7 @@ class TestCreateAgent:
 
     @patch("agent.langfuse")
     @patch("agent.run_agent")
-    @pytest.mark.asyncio()
+    @pytest.mark.asyncio
     async def test_run_agent(self, mock_run_agent: AsyncMock, mock_langfuse: MagicMock) -> None:
         """Test run_agent function."""
         mock_events = [
