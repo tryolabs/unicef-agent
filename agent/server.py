@@ -9,6 +9,7 @@ from config import config
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from handlers import handle_response
 from logging_config import get_logger
 from pydantic import BaseModel
 from schemas import Chat
@@ -133,8 +134,6 @@ if __name__ == "__main__":
     from initialize import initialize_app
 
     initialize_app()
-
-    from handlers import handle_response
 
     logger.info("🚀 Starting server... ")
 
