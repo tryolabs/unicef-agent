@@ -15,14 +15,16 @@ class TestConfig:
 
     def test_load_config_happy_path(self) -> None:
         """Test load_config loads configuration correctly."""
-        result = load_config()
+        result = load_config(Path("tests/config-test.yaml"))
         assert isinstance(result, Config)
         assert result.server.host == HOST
         assert result.server.port == PORT
-        assert result.mcp.datawarehouse_url == "http://127.0.0.1:6000/sse"
-        assert result.mcp.rag_url == "http://127.0.0.1:6001/sse"
+        assert result.mcp.datawarehouse_url == "http://localhost:6000/sse"
+        assert result.mcp.rag_url == "http://localhost:6001/sse"
+        assert result.mcp.geospatial_url == "http://localhost:6002/sse"
         assert result.llm.model == "gpt-4.1"
         assert result.llm.temperature == 0.0
+        assert result.llm.provider == "openai"
 
     def test_load_config_file_not_found(self) -> None:
         """Test load_config raises FileNotFoundError when config file doesn't exist."""

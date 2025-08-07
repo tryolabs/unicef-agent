@@ -1,0 +1,13 @@
+server:
+  port: 8000
+  host: 127.0.0.1
+
+mcp:
+  datawarehouse_url: http://localhost:6000/sse
+  rag_url: http://localhost:6001/sse
+  geospatial_url: http://localhost:6002/sse
+
+llm:
+  model: "gpt-4.1"
+  temperature: 0.0
+  provider: "openai"
