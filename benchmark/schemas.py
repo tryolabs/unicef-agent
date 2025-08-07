@@ -8,9 +8,9 @@ RESPONSE_TYPE = Literal["numerical", "textual"]
 
 class BechmarkQuestion(BaseModel):
     question: str
-    variations: list[str] | None
     response_type: RESPONSE_TYPE
-    answer: int | str
+    answer: int | str | float
+    variations: list[str] | None = None
 
 
 class Benchmark(BaseModel):
