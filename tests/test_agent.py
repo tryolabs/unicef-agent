@@ -35,7 +35,7 @@ class TestGetLLM:
         mock_litellm.assert_called_once_with(
             model="gpt-4o-mini",
             temperature=0.5,
-            additional_kwargs={"stop": ["Observation:"]},
+            additional_kwargs={"stop": ["Observation:"], "aws_region_name": None},
         )
         assert result == mock_instance
 
@@ -59,7 +59,7 @@ class TestGetLLM:
         mock_litellm.assert_called_once_with(
             model="gpt-4",
             temperature=0.7,
-            additional_kwargs={"stop": ["Observation:"]},
+            additional_kwargs={"stop": ["Observation:"], "aws_region_name": None},
         )
         assert result == mock_instance
 
