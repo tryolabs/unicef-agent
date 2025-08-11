@@ -32,7 +32,10 @@ def get_llm(specific_config: LLMConfig | None = None) -> LiteLLM:
     return LiteLLM(
         model=specific_config.model,
         temperature=specific_config.temperature,
-        additional_kwargs={"stop": ["Observation:"]},
+        additional_kwargs={
+            "stop": ["Observation:"],
+            "aws_region_name": specific_config.region_name,
+        },
     )
 
 

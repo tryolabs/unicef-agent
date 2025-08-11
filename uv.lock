@@ -55,7 +55,7 @@ requires-dist = [
     { name = "google-genai", specifier = ">=1.25.0" },
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "langfuse", extras = ["llama-index"], specifier = ">=3.0.3" },
-    { name = "litellm", specifier = "==1.74.15" },
+    { name = "litellm", specifier = "==1.75.0" },
     { name = "llama-index", extras = ["litellm", "llms"], specifier = ">=0.12.43" },
     { name = "llama-index-llms-litellm", specifier = ">=0.5.1" },
     { name = "llama-index-llms-openai", specifier = ">=0.4.7" },
@@ -76,9 +76,9 @@ dev = [
     { name = "pre-commit", specifier = ">=4.2.0,<5" },
     { name = "pyinstrument", specifier = ">=5.0.2,<6" },
     { name = "pytest", specifier = ">=8.4.0,<9" },
-    { name = "pytest-asyncio", specifier = ">=0.23.0,<1" },
+    { name = "pytest-asyncio", specifier = ">=0.23.0,<2" },
     { name = "pytest-cov", specifier = ">=6.1.1,<7" },
-    { name = "ruff", specifier = ">=0.11.13,<0.12" },
+    { name = "ruff", specifier = ">=0.11.13,<0.13" },
 ]
 
 [[package]]
@@ -1517,7 +1517,7 @@ wheels = [
 
 [[package]]
 name = "litellm"
-version = "1.74.15"
+version = "1.75.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1532,9 +1532,9 @@ dependencies = [
     { name = "tiktoken" },
     { name = "tokenizers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/13/90865340f76d54c1c2709074f882bf8ef3be0ac612a2164da5eed07ebe11/litellm-1.74.15.tar.gz", hash = "sha256:530a4b3918c02f87079ca7efb77eaf13d31f281218863f65b2da4bd863790677", size = 9748743 }
+sdist = { url = "https://files.pythonhosted.org/packages/1b/28/50837cb0246c42a8caac45610572883de7f478543cf4d143e84f099c0234/litellm-1.75.0.tar.gz", hash = "sha256:ec7fbfe79e1b9cd4a2b36ca9e71e71959d8fc43305b222e5f257aced1a0d1d63", size = 9928112 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/9c/f4dd62d790d65c924699450d8789df437e63c8d99229e95bd7467ce7b82a/litellm-1.74.15-py3-none-any.whl", hash = "sha256:bf3db744dee982e53196cb688097ba76e2867004e39ad201b3761c5de9e3265b", size = 8835438 },
+    { url = "https://files.pythonhosted.org/packages/db/43/e10905870d42e927de3b095a9248f2764156c7eb45ec172d72be35cd2bb4/litellm-1.75.0-py3-none-any.whl", hash = "sha256:1657472f37d291b366050dd2035e3640eebd96142d6fa0f935ceb290a0e1d5ad", size = 8850420 },
 ]
 
 [[package]]

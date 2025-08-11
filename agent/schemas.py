@@ -60,6 +60,7 @@ class LLMConfig(BaseModel):
     model: str
     temperature: float
     provider: PROVIDERS
+    region_name: str | None = None
 
 
 class MCPConfig(BaseModel):
