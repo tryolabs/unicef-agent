@@ -129,7 +129,7 @@ def evaluate_numerical_answer(
 
     langfuse.create_score(
         trace_id=trace_id,
-        name="answer_correctness",
+        name="answer_correct",
         value="correct" if is_correct else "incorrect",
         comment=f"Expected: {expected}, Got: {answer}",
     )
