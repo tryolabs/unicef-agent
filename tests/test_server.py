@@ -38,7 +38,7 @@ class TestServer:
         assert "message" in response.json()
         assert isinstance(response.json()["message"], str)
 
-    @patch("server.handle_response")
+    @patch("handlers.handle_response")
     @patch("server.uuid.uuid4")
     def test_ask_endpoint_happy_path(
         self, mock_uuid: MagicMock, mock_handle_response: AsyncMock
@@ -124,7 +124,7 @@ class TestServer:
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @patch("server.handle_response")
+    @patch("handlers.handle_response")
     @patch("server.uuid.uuid4")
     def test_ask_endpoint_multiple_messages(
         self, mock_uuid: MagicMock, mock_handle_response: AsyncMock
@@ -154,7 +154,7 @@ class TestServer:
         call_args = mock_handle_response.call_args[0]
         assert call_args[0][-1].content == "How can I help you?"
 
-    @patch("server.handle_response")
+    @patch("handlers.handle_response")
     @patch("server.uuid.uuid4")
     def test_ask_endpoint_uuid_generation(
         self, mock_uuid: MagicMock, mock_handle_response: AsyncMock
@@ -191,7 +191,7 @@ class TestServer:
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    @patch("server.handle_response")
+    @patch("handlers.handle_response")
     @patch("server.uuid.uuid4")
     def test_ask_endpoint_preserves_session_id(
         self, mock_uuid: MagicMock, mock_handle_response: AsyncMock

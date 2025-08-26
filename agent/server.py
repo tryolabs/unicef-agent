@@ -9,7 +9,6 @@ from config import config
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from handlers import handle_response
 from logging_config import get_logger
 from pydantic import BaseModel
 from schemas import Chat
@@ -103,6 +102,8 @@ async def ask(
     Returns:
         StreamingResponse: Streaming response containing the response from the agent.
     """
+    from handlers import handle_response
+
     logger.info("Received /ask endpoint call with session_id=%s", chat.session_id)
     if chat.chat_messages == [] or chat.chat_messages[-1].content == "":
         raise HTTPException(
