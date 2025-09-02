@@ -138,17 +138,17 @@ def _process_agent_stream_logic(
         Tuple of (return_chunks, is_thought_chunk)
     """
     return_chunks: list[ReturnChunk] = []
-    chunk_response = chunk.delta.split("Action:")
+    chunk_response = chunk.delta.split("Action")
 
     # Reconstruct the split parts with "Action:" preserved
     if len(chunk_response) > 1:
-        chunk_response = [chunk_response[0]] + ["Action:" + part for part in chunk_response[1:]]
+        chunk_response = [chunk_response[0]] + ["Action" + part for part in chunk_response[1:]]
 
     for i, r in enumerate(chunk_response):
         if r.startswith("Action"):
             is_thought_chunk = False
         elif "Thought" in r:
-            chunk_response[i] = "Thought:" + r.split("Thought:")[-1]
+            chunk_response[i] = "Thought" + r.split("Thought")[-1]
             is_thought_chunk = True
 
         # Skip non-thought chunks
