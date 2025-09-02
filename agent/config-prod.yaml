@@ -14,7 +14,7 @@ mcp:
 llm:
   # model: "gpt-4.1"
   # model: "gemini-2.5-pro"
-  model: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+  model: "bedrock/arn:aws:bedrock:us-east-1:505646497781:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0"
   temperature: 0.0
   provider: "bedrock"
-  region_name: "us-west-2"
+  region_name: "us-east-1"
