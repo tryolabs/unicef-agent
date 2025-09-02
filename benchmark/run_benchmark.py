@@ -72,11 +72,11 @@ for file in [NUMERICAL_RESULTS_FILE, TEXTUAL_RESULTS_FILE]:
 
 with NUMERICAL_RESULTS_FILE.open("w") as fh:
     logger.info("Writing numerical results to %s", NUMERICAL_RESULTS_FILE)
-    fh.write("correct\tquestion\tvariation\texpected\tvalue\tanswer\n")
+    fh.write("correct\tquestion\texpected\tvalue\tanswer\n")
 with TEXTUAL_RESULTS_FILE.open("w") as fh:
     logger.info("Writing textual results to %s", TEXTUAL_RESULTS_FILE)
     fh.write(
-        "question\tvariation\texpected\tanswer\tfaithfulness_score\t"
+        "question\texpected\tanswer\tfaithfulness_score\t"
         "faithfulness_justification\tcompleteness_score\tcompleteness_justification\t"
         "conciseness_score\tconciseness_justification\n"
     )
@@ -88,11 +88,9 @@ extract_number_prompt = prompts["extract_number_prompt"]
 score_textual_answer_prompt = prompts["score_textual_answer_prompt"]
 
 
-@pytest.mark.parametrize(("question", "expected", "response_type", "variation"), benchmark_list)
+@pytest.mark.parametrize(("question", "expected", "response_type"), benchmark_list)
 @pytest.mark.asyncio
-async def test_agent_question(
-    question: str, expected: str | int, response_type: str, variation: str
-) -> None:
+async def test_agent_question(question: str, expected: str | int, response_type: str) -> None:
     """Test agent with a specific question."""
     trace_id = uuid.uuid4().hex
     message = Message(role="user", content=question, trace_id=trace_id)
@@ -107,14 +105,12 @@ async def test_agent_question(
             final_answer += json_chunk.get("response", "")
             break
     if response_type == "numerical":
-        evaluate_numerical_answer(trace_id, question, int(expected), final_answer, variation)
+        evaluate_numerical_answer(trace_id, question, float(expected), final_answer)
     else:
-        evaluate_textual_answer(trace_id, question, str(expected), final_answer, variation)
+        evaluate_textual_answer(trace_id, question, str(expected), final_answer)
 
 
-def evaluate_numerical_answer(
-    trace_id: str, question: str, expected: int, answer: str, variation: str
-) -> None:
+def evaluate_numerical_answer(trace_id: str, question: str, expected: float, answer: str) -> None:
     numerical_value = extract_number_from_response(question, answer, extract_number_prompt)
     if numerical_value is None:
         is_correct = False
@@ -123,9 +119,7 @@ def evaluate_numerical_answer(
         is_correct = abs(numerical_value - expected) <= tolerance
     with NUMERICAL_RESULTS_FILE.open("a+") as fh:
         answer = answer.replace("\n", "||")
-        fh.write(
-            f"{is_correct}\t{question}\t{variation}\t{expected}\t{numerical_value}\t{answer}\n"
-        )
+        fh.write(f"{is_correct}\t{question}\t{expected}\t{numerical_value}\t{answer}\n")
 
     langfuse.create_score(
         trace_id=trace_id,
@@ -142,14 +136,12 @@ def evaluate_numerical_answer(
         )
 
 
-def evaluate_textual_answer(
-    trace_id: str, question: str, expected: str, answer: str, variation: str
-) -> None:
+def evaluate_textual_answer(trace_id: str, question: str, expected: str, answer: str) -> None:
     result = score_textual_answer(question, expected, answer, score_textual_answer_prompt)
 
     with TEXTUAL_RESULTS_FILE.open("a+") as fh:
         fh.write(
-            f"{question}\t{variation}\t{expected}\t{answer}\t"
+            f"{question}\t{expected}\t{answer}\t"
             f"{result.faithfulness.result}\t{result.faithfulness.justification}\t"
             f"{result.completeness.result}\t{result.completeness.justification}\t"
             f"{result.conciseness.result}\t{result.conciseness.justification}\n"

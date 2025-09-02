@@ -61,68 +61,8 @@ questions = [
         "question": "What wind speed threshold is used to classify a tropical storm in the CCRI 2025 methodology?",
         "answer": "A wind speed greater than 63 km/hr is considered as a named tropical storm, following WMO guidance.",
     },
-    {
-        "question": "List the four dimensions considered when defining a heatwave in CCRI 2025.",
-        "answer": "The four dimensions considered for heatwaves are: frequency (number per year), duration (total days), severity (temperature above local average), and extremely high temperatures (days exceeding 35 degrees Celsius).",
-    },
-    {
-        "question": "What is the data source for the temperature input used in the heatwave analysis?",
-        "answer": "Daily aggregate temperature data from the ERA5 reanalysis (produced by Copernicus Climate Change Service at ECMWF) is used.",
-    },
-    {
-        "question": "What threshold, based on WHO guidelines, is adopted for PM2.5 air pollution exposure analysis?",
-        "answer": "A threshold of 5 μg/m3, following WHO air quality guidance (WHO, 2021), is adopted for PM2.5 exposure.",
-    },
-    {
-        "question": "Which specific vector-borne disease is included in CCRI 2025, and why are others excluded?",
-        "answer": "Only Malaria is included in CCRI 2025. Other vector-borne diseases like dengue and zika are excluded due to a lack of global data availability.",
-    },
-    {
-        "question": "What are the 7 components included in Pillar 2 (Child Vulnerability) of CCRI 2025?",
-        "answer": "The 7 components of Pillar 2 are: Health, Nutrition, WASH, Education, Protection, Poverty, and Child Survival.",
-    },
-    {
-        "question": "Name two indicators used within the 'Health' component of Pillar 2.",
-        "answer": "Indicators under Health include: Percentage of infants receiving DTP1 vaccine, Percentage of infants receiving DTP3 vaccine, Percentage of deliveries attended by skilled health personnel, and Percentage of population with access to electricity. (Any two).",
-    },
-    {
-        "question": "What normalization technique is applied to all indicators, components, and pillars in CCRI 2025?",
-        "answer": "The min-max normalization technique is used to scale values to a 0-10 range.",
-    },
-    {
-        "question": "What aggregation method is used to combine the absolute and relative exposure indicators for individual hazards in Pillar 1?",
-        "answer": "The geometric mean is used to aggregate the absolute and relative exposure indicators for individual hazard components in Pillar 1.",
-    },
-    {
-        "question": "Which aggregation method is used to combine indicators within the components of Pillar 2 (Child Vulnerability)?",
-        "answer": "The arithmetic mean is used to aggregate the indicators and components in Pillar 2.",
-    },
-    {
-        "question": "What is the primary purpose of using Principal Component Analysis (PCA) in the pixel-level CCRI calculation?",
-        "answer": "PCA is applied to reduce the dimensionality of the climate risk data (Pillar 1 hazards) while preserving as much variability as possible, helping to identify the most significant components.",
-    },
-    {
-        "question": "How are the pixel-level Pillar 1 hazard data and the country-level Pillar 2 vulnerability data combined to create the final pixel-level index?",
-        "answer": "The geometric mean is used to combine the Pillar 1 (pixel-level) and Pillar 2 (country-level, applied homogeneously across the country's pixels) indicators.",
-    },
-    {
-        "question": "What is one limitation mentioned regarding the interpretation of the composite CCRI score?",
-        "answer": "One limitation is that combining multiple indicators into one score can obscure individual component performance, or a low overall score might hide poor performance in specific areas. (Other valid limitations: invites overly simplistic interpretations, results depend on indicator/threshold choices, missing data affects scores, normalization/aggregation choices affect scores).",
-    },
-    {
-        "question": "What types of climate-related processes are explicitly mentioned as *not* being considered in the CCRI 2025 index?",
-        "answer": "The index does not consider slow-onset processes such as rising sea levels, glacier melting, or ocean warming and acidification.",
-    },
-    {
-        "question": "What probability does a '100-year return period' represent for an event occurring in any given year?",
-        "answer": "A 100-year return period indicates a 1% probability of the event being equaled or exceeded in any given year.",
-    },
-    {
-        "question": "What data resolution is used for the gridded child population data from WorldPop?",
-        "answer": "The WorldPop gridded child population data used has a 100m spatial resolution.",
-    },
 ]
 
 benchmark_questions: list[BechmarkQuestion] = [
-    BechmarkQuestion(**question, variations=None, response_type="textual") for question in questions
+    BechmarkQuestion(**question, response_type="textual") for question in questions
 ]

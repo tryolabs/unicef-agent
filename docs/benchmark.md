@@ -59,15 +59,7 @@ The benchmark includes three main categories of questions, each designed to test
 
 ## Evaluation Methodology
 
-### 1. **Question Variations**
-
-Each benchmark question can have multiple variations to test the agent's robustness:
-
-- Original question
-- Alternative phrasings
-- Different keyword combinations
-
-### 2. **Response Types & Scoring**
+### 1. **Response Types & Scoring**
 
 #### **Numerical Responses**
 
@@ -83,7 +75,7 @@ Each benchmark question can have multiple variations to test the agent's robustn
   - **Completeness** (1-5): How well the response addresses all aspects of the question
   - **Conciseness** (1-5): How well the response provides relevant information without excessive details
 
-### 3. **Evaluation Infrastructure**
+### 2. **Evaluation Infrastructure**
 
 #### **Langfuse Integration**
 
@@ -161,7 +153,6 @@ benchmark_questions = [
 ```
 
 - Modular question organization by domain
-- Support for question variations
 - Consistent data structure using Pydantic models
 
 ### 3. **Evaluation Prompts**

@@ -10,7 +10,6 @@ class BechmarkQuestion(BaseModel):
     question: str
     response_type: RESPONSE_TYPE
     answer: int | str | float
-    variations: list[str] | None = None
 
 
 class Benchmark(BaseModel):
@@ -18,7 +17,7 @@ class Benchmark(BaseModel):
 
 
 class NumericalAnswer(BaseModel):
-    value: int | None
+    value: int | float | None
 
 
 class TextualAnswer(BaseModel):

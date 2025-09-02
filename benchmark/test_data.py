@@ -14,7 +14,7 @@ from benchmark.schemas import (
 )
 
 
-def extract_number_from_response(question: str, answer: str, prompt: str) -> int | None:
+def extract_number_from_response(question: str, answer: str, prompt: str) -> int | float | None:
     """Extract numerical answer from response using an LLM.
 
     Args:
@@ -74,23 +74,21 @@ def score_textual_answer(
 
 def benchmark_question_to_tuple(
     bq: BechmarkQuestion,
-) -> list[tuple[str, str | int, RESPONSE_TYPE, str]]:
-    result: list[tuple[str, str | int, RESPONSE_TYPE, str]] = []
-    questions = [bq.question]
-    if bq.variations:
-        questions += bq.variations
-    for q in questions:
-        instance = (q, bq.answer, bq.response_type, bq.question)
-        result.append(instance)
+) -> tuple[str, str | int | float, RESPONSE_TYPE]:
+    """Convert a benchmark question to a tuple."""
+    result = (bq.question, bq.answer, bq.response_type)
 
     return result
 
 
-def benchmark_to_list(benchmark: Benchmark) -> list[tuple[str, str | int, RESPONSE_TYPE, str]]:
-    result: list[tuple[str, str | int, RESPONSE_TYPE, str]] = []
+def benchmark_to_list(
+    benchmark: Benchmark,
+) -> list[tuple[str, str | int | float, RESPONSE_TYPE]]:
+    """Convert a benchmark to a list of tuples."""
+    result: list[tuple[str, str | int | float, RESPONSE_TYPE]] = []
     for bq in benchmark.questions:
         instance = benchmark_question_to_tuple(bq)
-        result.extend(instance)
+        result.append(instance)
     return result
 
 
