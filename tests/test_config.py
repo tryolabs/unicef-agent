@@ -22,9 +22,12 @@ class TestConfig:
         assert result.mcp.datawarehouse_url == "http://localhost:6000/sse"
         assert result.mcp.rag_url == "http://localhost:6001/sse"
         assert result.mcp.geospatial_url == "http://localhost:6002/sse"
-        assert result.llm.model == "gpt-4.1"
+        assert (
+            result.llm.model == "bedrock/arn:aws:bedrock:us-east-1:505646497781:inference-profile/"
+            "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        )
         assert result.llm.temperature == 0.0
-        assert result.llm.provider == "openai"
+        assert result.llm.provider == "bedrock"
 
     def test_load_config_file_not_found(self) -> None:
         """Test load_config raises FileNotFoundError when config file doesn't exist."""
