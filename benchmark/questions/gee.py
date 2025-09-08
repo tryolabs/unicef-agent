@@ -51,22 +51,22 @@ data_single_hazard = {
         # "Colombia": 690200,
     },
     "heatwave duration": {
-        # "Angola": 15501006,
-        "Nicaragua": 2319487,
+        # "Angola": 16557210,
+        # "Nicaragua": 2265486,
         # "Uruguay": 0,
-        # "Colombia": 10975115,
+        "Colombia": 10830410,
     },
     "heatwave frequency": {
-        # "Angola": 16055660,
-        # "Nicaragua": 2319955,
-        # "Uruguay": 0,
-        "Colombia": 11686740,
+        "Angola": 15860450,
+        # "Nicaragua": 2145364,
+        # "Uruguay": 7754,
+        # "Colombia": 12180450,
     },
     "heatwave severity": {
-        # "Angola": 0,
+        # "Angola": 17,
         # "Nicaragua": 0,
-        "Uruguay": 591412,
-        # "Colombia": 22840,
+        "Uruguay": 410675,
+        # "Colombia": 37066,
     },
     "river floods": {
         "Angola": 661223,
@@ -102,45 +102,31 @@ data_single_hazard = {
 data_multi_hazard = {
     # and river and coastal floods
     "river and coastal floods": {
-        "Colombia": 14053,
-        # "Angola": 1211,
-        # "Nicaragua": 2430,
-        # "Uruguay": 780,
+        "Colombia": 16638,
+        # "Angola": 1347,
+        # "Nicaragua": 3204,
+        # "Uruguay": 937,
     },
     # or river or coastal floods
     "river or coastal floods": {
-        # "Colombia": 812510,
-        "Angola": 570423,
-        # "Nicaragua": 43721,
-        # "Uruguay": 42023,
+        # "Colombia": 943530,
+        # "Angola": 664436,
+        # "Nicaragua": 51250,
+        "Uruguay": 49897,
     },
     # and malaria
     "both kinds of malaria": {
-        # "Colombia": 377754,
-        # "Angola": 0,
-        "Nicaragua": 44952,
+        # "Colombia": 432180,
+        "Angola": 0,
+        # "Nicaragua": 52274,
         # "Uruguay": 0,
     },
     # or malaria
     "any kind of malaria": {
-        # "Colombia": 6149920,
-        # "Angola": 15785353,
-        # "Nicaragua": 491725,
-        "Uruguay": 0,
-    },
-    # and floods
-    "all kinds of floods": {
-        "Colombia": 14053,
-        # "Angola": 1211,
-        # "Nicaragua": 2430,
-        # "Uruguay": 780,
-    },
-    # or floods
-    "some kind of flood": {
-        # "Colombia": 812510,
-        # "Angola": 570423,
-        # "Nicaragua": 43721,
-        "Uruguay": 42023,
+        # "Colombia": 7155125,
+        # "Angola": 18325995,
+        "Nicaragua": 572093,
+        # "Uruguay": 0,
     },
 }
 
