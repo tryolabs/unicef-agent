@@ -64,9 +64,13 @@ async def respond(
         session_id,
         tags,
     ):
-        return_chunks, is_final_answer, is_thought_chunk = _process_chunk(
+        processed_chunk = _process_chunk(
             chunk, trace_id, is_final_answer=is_final_answer, is_thought_chunk=is_thought_chunk
         )
+        if processed_chunk is None:
+            continue
+
+        return_chunks, is_final_answer, is_thought_chunk = processed_chunk
 
         for return_chunk in return_chunks:
             yield json.dumps(return_chunk.model_dump())
@@ -84,7 +88,7 @@ def _process_chunk(
     *,
     is_final_answer: bool,
     is_thought_chunk: bool,
-) -> tuple[list[ReturnChunk], bool, bool]:
+) -> tuple[list[ReturnChunk], bool, bool] | None:
     """Process a single chunk and return the appropriate ReturnChunk list.
 
     Args:
@@ -100,7 +104,10 @@ def _process_chunk(
 
     match chunk:
         case ToolCallResult():
-            return_chunks = [_process_tool_call_chunk(chunk, trace_id)]
+            tool_call_chunk = _process_tool_call_chunk(chunk, trace_id)
+            if tool_call_chunk is None:
+                return None
+            return_chunks.append(tool_call_chunk)
 
         case AgentStream():
             return_chunks, is_thought_chunk = _process_agent_stream_logic(
@@ -184,7 +191,7 @@ def _format_messages(chat_messages: list[Message]) -> dict[str, list[dict[str, s
 def _process_tool_call_chunk(
     chunk: ToolCallResult,
     trace_id: str,
-) -> ReturnChunk:
+) -> ReturnChunk | None:
     """Process a tool call chunk and return the appropriate ReturnChunk.
 
     Args:
@@ -208,6 +215,9 @@ def _process_tool_call_chunk(
 
         tool_name = chunk.tool_name
         logger.info("Handling tool call: %s", tool_name)
+        if tool_name in ["create_temp_dir", "delete_temp_dir"]:
+            return None
+
         tool_call_message = f"Calling {tool_name}"
 
         if input_arguments:
