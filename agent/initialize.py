@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import yaml
+from calculator import get_calculator_tools
 from config import config
 from dotenv import load_dotenv
 from llama_index.core.tools.function_tool import FunctionTool
@@ -133,10 +134,15 @@ async def get_tools(mcp_config: MCPConfig | None = None) -> list[FunctionTool]:
     geospatial_tools_list = await geospatial_tools.to_tool_list_async()
     logger.info("Got geospatial tools")
 
+    logger.info("Getting calculator tools")
+    calculator_tools = get_calculator_tools()
+    logger.info("Got calculator tools")
+
     all_tools = [
         *datawarehouse_tools_list,
         *rag_tools_list,
         *geospatial_tools_list,
+        *calculator_tools,
     ]
 
     return all_tools
