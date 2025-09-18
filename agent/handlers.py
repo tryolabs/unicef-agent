@@ -157,6 +157,10 @@ def _process_agent_stream_logic(
         elif "Thought" in r:
             chunk_response[i] = "Thought" + r.split("Thought")[-1]
             is_thought_chunk = True
+        elif "Answer" in r:
+            # Do not treat any 'Answer' content as thinking; this will be sent
+            # only once via the final AgentOutput phase.
+            is_thought_chunk = False
 
         # Skip non-thought chunks
         if not is_thought_chunk:
