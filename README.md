@@ -1,6 +1,6 @@
 # UNICEF Technical Documentation Agent
 
-The UNICEF Technical Documentation Agent is a FastAPI-based intelligent middleware that orchestrates communication between the frontend interface and multiple Model Context Protocol (MCP) servers. It serves as the central hub for processing natural language queries and coordinating responses from various data sources.
+The UNICEF Technical Documentation Agent is a FastAPI-based intelligent middleware that orchestrates communication between the frontend interface and multiple Model Context Protocol (MCP) servers. It serves as the central hub for processing natural language queries and coordinating responses from various data sources, including the Global Child Hazard Database - Technical Documentation.
 
 ### Core Components
 
@@ -207,7 +207,7 @@ geospatial_tools = await geospatial_mcp.to_tool_list_async()
 
 2. **RAG Tools**:
 
-   - `get_ccri_relevant_information(question)`: Search technical documentation
+   - `get_ccri_relevant_information(question)`: Search Global Child Hazard Database - Technical Documentation
 
 3. **Geospatial Tools** (12 tools):
    - Dataset and metadata operations
