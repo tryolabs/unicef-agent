@@ -18,7 +18,7 @@ async def handle_response(
     session_id: str,
     tags: list[str] | None = None,
 ) -> AsyncGenerator[str, None]:
-    """Handle the response by running respond, and cleaning up.
+    """Handle the response by building a prompt and streaming the agent response.
 
     Args:
         messages: List of messages to process
@@ -28,24 +28,24 @@ async def handle_response(
     Yields:
         JSON serialized chunks of the response
     """
-    formatted_messages = _format_messages(messages)
+    prompt_text = _build_conversation_prompt(messages)
 
-    logger.info("Running agent with inputs %s", formatted_messages)
+    logger.info("Running agent with prompt: %s", prompt_text)
 
-    async for chunk in respond(formatted_messages, trace_id, session_id, tags):
+    async for chunk in respond(prompt_text, trace_id, session_id, tags):
         yield chunk
 
 
 async def respond(
-    messages: dict[str, list[dict[str, str]]],
+    prompt_text: str,
     trace_id: str,
     session_id: str,
     tags: list[str] | None = None,
 ) -> AsyncGenerator[str, None]:
-    """Process messages and generate a response using the agent.
+    """Process prompt and generate a response using the agent.
 
     Args:
-        messages: List of messages to process
+        prompt_text: The conversation prompt to provide to the agent
         trace_id: Unique identifier for tracing the request
         session_id: Unique identifier for the session
         tags: List of tags to associate with the trace
@@ -57,13 +57,7 @@ async def respond(
 
     is_final_answer = False
     is_thought_chunk = True
-    async for chunk in run_agent(  # type: ignore[arg-type]
-        agent,
-        messages,
-        trace_id,
-        session_id,
-        tags,
-    ):
+    async for chunk in run_agent(agent, prompt_text, trace_id, session_id, tags):
         processed_chunk = _process_chunk(
             chunk, trace_id, is_final_answer=is_final_answer, is_thought_chunk=is_thought_chunk
         )
@@ -171,25 +165,47 @@ def _process_agent_stream_logic(
     return return_chunks, is_thought_chunk
 
 
-def _format_messages(chat_messages: list[Message]) -> dict[str, list[dict[str, str]]]:
-    """Format chat messages into the expected format for the agent.
+def _build_conversation_prompt(
+    chat_messages: list[Message], *, max_messages: int | None = 20
+) -> str:
+    """Build a single prompt string from chat messages (user and assistant).
 
     Args:
-        chat_messages: List of Message objects containing role, content and trace_id
+        chat_messages: List of Message objects
+        max_messages: If provided, only the last N messages are included
 
     Returns:
-        Dictionary with 'messages' key containing list of formatted message dictionaries
+        A single string prompt representing the conversation
     """
-    messages = [
-        {
-            "role": message.role,
-            "content": message.content,
-            "trace_id": message.trace_id,
-        }
-        for message in chat_messages
-    ]
+    if not chat_messages:
+        return ""
 
-    return {"messages": messages}
+    if max_messages is not None and len(chat_messages) > max_messages:
+        chat_messages = chat_messages[-max_messages:]
+
+    def _is_thought_line(line: str) -> bool:
+        s = line.strip()
+        # Remove leading markdown asterisks for headings like **Thought**
+        while s.startswith("*"):
+            s = s.lstrip("*").strip()
+        lower = s.lower()
+        return lower.startswith(("thought", "thinking", "action", "observation"))
+
+    lines: list[str] = []
+    for m in chat_messages:
+        role = m.role or "user"
+        content = m.content or ""
+        if not content:
+            continue
+        if role == "assistant":
+            filtered_lines = [ln for ln in content.split("\n") if not _is_thought_line(ln)]
+            sanitized = "\n".join(filtered_lines).strip()
+            if sanitized:
+                lines.append(f"Assistant: {sanitized}")
+        else:
+            lines.append(f"User: {content}")
+
+    return "\n".join(lines)
 
 
 def _process_tool_call_chunk(
