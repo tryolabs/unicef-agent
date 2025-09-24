@@ -1,6 +1,5 @@
 import logging
 import uuid
-from datetime import timedelta
 from typing import Annotated
 
 import uvicorn
@@ -58,10 +57,8 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=60)
     access_token = create_access_token(
         data={"sub": user.username},
-        expires_delta=access_token_expires,
     )
 
     return Token(

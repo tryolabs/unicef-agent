@@ -1,7 +1,6 @@
 import hashlib
 import json
 import os
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +13,6 @@ from pydantic import BaseModel
 # Read the environment variables
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "secret")
 JWT_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -53,7 +51,7 @@ def get_users() -> list[dict[str, str]]:
     except FileNotFoundError:
         try:
             # Try to load users from the env variable
-            users_json_file = json.loads(users_file)
+            users_json_file = json.loads(users_file)  # type: ignore[reportUnboundVariable]
         except FileNotFoundError:
             # Return empty list if file not found
             users_json_file = []
@@ -85,16 +83,9 @@ def authenticate_user(username: str, password: str) -> User | None:
     return User(username=user.username)
 
 
-def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict[str, Any]) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
-
-    if expires_delta:
-        expire = datetime.now(UTC) + expires_delta
-    else:
-        expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
