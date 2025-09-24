@@ -1,7 +1,7 @@
 import uuid
 
 from handlers import (
-    _format_messages,  # type: ignore[attr-defined]
+    _build_conversation_prompt,  # type: ignore[attr-defined]
     _process_agent_stream_chunk,  # type: ignore[attr-defined]
     _process_final_answer,  # type: ignore[attr-defined]
     _process_stop_event,  # type: ignore[attr-defined]
@@ -16,31 +16,38 @@ from schemas import Message, ReturnChunk
 class TestHandlers:
     """Test cases for handlers module."""
 
-    def test_format_messages(self) -> None:
-        """Test format_messages function."""
+    def test_build_conversation_prompt(self) -> None:
+        """Test building conversation prompt from messages."""
         trace_id_1 = uuid.uuid4().hex
         trace_id_2 = uuid.uuid4().hex
         messages = [
             Message(role="user", content="Hello, how are you?", trace_id=trace_id_1),
             Message(role="assistant", content="I'm doing well, thank you!", trace_id=trace_id_2),
         ]
-        formatted_messages = _format_messages(messages)
-        assert formatted_messages == {
-            "messages": [
-                {"role": "user", "content": "Hello, how are you?", "trace_id": trace_id_1},
-                {
-                    "role": "assistant",
-                    "content": "I'm doing well, thank you!",
-                    "trace_id": trace_id_2,
-                },
-            ]
-        }
+        prompt = _build_conversation_prompt(messages)
+        assert prompt == "User: Hello, how are you?\nAssistant: I'm doing well, thank you!"
 
-    def test_format_empty_messages(self) -> None:
-        """Test format_messages function with empty messages."""
+    def test_build_conversation_prompt_empty(self) -> None:
+        """Test prompt building with empty messages returns empty string."""
         messages: list[Message] = []
-        formatted_messages = _format_messages(messages)
-        assert formatted_messages == {"messages": []}
+        prompt = _build_conversation_prompt(messages)
+        assert prompt == ""
+
+    def test_build_conversation_prompt_sanitizes_thoughts(self) -> None:
+        """Assistant internal Thought/Action lines are removed from prompt."""
+        trace_id_1 = uuid.uuid4().hex
+        trace_id_2 = uuid.uuid4().hex
+        messages = [
+            Message(role="user", content="Q: What is 2+2?", trace_id=trace_id_1),
+            Message(
+                role="assistant",
+                content="**Thought**: let's compute\nAction: calculate\nObservation: 4\nAnswer: 4",
+                trace_id=trace_id_2,
+            ),
+        ]
+        prompt = _build_conversation_prompt(messages)
+        # Thought/Action/Observation lines should be removed, leaving only any remaining content
+        assert prompt == "User: Q: What is 2+2?\nAssistant: Answer: 4"
 
     def test_process_agent_stream_chunk(self) -> None:
         """Test _process_agent_stream_chunk function."""
