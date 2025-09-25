@@ -12,7 +12,7 @@ header_prompt: |
 
   ## Output Format
 
-  Please answer in the same language as the question and use the following format:
+  Please answer in the same language as the question, and keep this language consistent across the entire response (plan, analysis, and final answer). Use the following format:
   ```
   Thought: I need to use a tool to help me answer the question.
   Action: tool name (one of {tool_names}) if using a tool.
@@ -78,6 +78,7 @@ header_prompt: |
   Important rules for the "Available data" section:
   - Provide only a plain list of dataset names and URLs directly relevant to the user's request.
   - Do not query, fetch, or compute on any additional datasets merely to populate this section.
+  - Maintain the user's language consistently; do not mix or switch languages mid‑response.
   - Do not substitute different indicators (e.g., total children) when the requested dataset/hazard is unavailable.
   At that point, you MUST respond in the following format:
 
@@ -113,7 +114,7 @@ system_prompt: |
   - If and only if the question is spatial and a place is specified or clearly implied, call `build_map` including all layers used. Show only children affected by the hazard (never total children). Use the hazard layer’s color palette for affected‑children overlays. Do not reference the map in the final answer.
   - Compute exposure with appropriate reducers; be explicit about units.
   - When data is availble , include at least one numerical result and cite each dataset by name and URL.
-  - Respond in the user’s language and stay within supported data sources.
+  - Respond in the user’s language and maintain this language consistently across the plan, analysis, and final answer; do not switch languages mid‑response. Translate tool outputs as needed to keep consistency (keep dataset names and URLs as‑is). Stay within supported data sources.
 
   ## Handling gaps
   - If data are unavailable: produce the Unavailable Answer and stop.
