@@ -70,13 +70,14 @@ llm:
   temperature: 0.5 # Response creativity (0-1)
 
 mcp:
-  datawarehouse_url: "http://datawarehouse_mcp:8001/sse"
-  rag_url: "http://rag_mcp:8002/sse"
-  geospatial_url: "http://geospatial_mcp:8003/sse"
+  # MCP servers listen on 6000/6001/6002
+  datawarehouse_url: "http://datawarehouse_mcp:6000/sse"
+  rag_url: "http://rag_mcp:6001/sse"
+  geospatial_url: "http://geospatial_mcp:6002/sse"
 
 server:
   host: "0.0.0.0" # Server bind address
-  port: 8000 # Server port
+  port: 8000 # Agent API port
 ```
 
 ### Development
@@ -101,29 +102,39 @@ uv run pytest
 uv run pytest tests/test_agent.py -v
 ```
 
-### Environment Variables
+### Environment variables and secrets
 
-The application loads secrets from Docker secret files or environment variables:
+Secrets are read from Docker secrets when available, falling back to environment variables (see `agent/initialize.py`). For local development, you can use a `.env` file.
 
-| Variable                         | Description                         | Required |
-| -------------------------------- | ----------------------------------- | -------- |
-| `OPENAI_API_KEY`                 | OpenAI API key for LLM access       | Yes      |
-| `LANGFUSE_HOST`                  | Langfuse server URL                 | Yes      |
-| `LANGFUSE_PUBLIC_KEY`            | Langfuse public key                 | Yes      |
-| `LANGFUSE_SECRET_KEY`            | Langfuse secret key                 | Yes      |
-| `JWT_SECRET_KEY`                 | Secret for JWT token signing        | Yes      |
-| `USERS`                          | JSON string with user credentials   | Yes      |
-| `GOOGLE_APPLICATION_CREDENTIALS` | Path to Google service account JSON | Optional |
+Required configuration:
 
-### User Management
+| Variable                         | Description                                    | When required          |
+| -------------------------------- | ---------------------------------------------- | ---------------------- |
+| `LANGFUSE_HOST`                  | Langfuse server URL                            | Always                 |
+| `LANGFUSE_PUBLIC_KEY`            | Langfuse public key                            | Always                 |
+| `LANGFUSE_SECRET_KEY`            | Langfuse secret key                            | Always                 |
+| `JWT_SECRET_KEY`                 | Secret for JWT token signing                   | Always                 |
+| `USERS_PATH`                     | Path to users JSON file OR literal JSON string | Always                 |
+| `OPENAI_API_KEY`                 | OpenAI API key                                 | If provider=`openai`   |
+| `AWS_BEARER_TOKEN_BEDROCK`       | AWS Bedrock bearer token                       | If provider=`bedrock`  |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to Vertex AI/Google JSON credentials      | If provider=`vertexai` |
 
-Users are configured via JSON in the `USERS` environment variable:
+Docker secret file names (for Compose): `langfuse_host`, `langfuse_public_key`, `langfuse_secret_key`, `openai_api_key`, `jwt_secret_key`, `users`, `vertex_auth.json`, `aws_bearer_token_bedrock`.
+
+### User management
+
+Set `USERS_PATH` to either:
+
+- An absolute path to a JSON file mounted in the container, or
+- A literal JSON string containing the users array
+
+Example content:
 
 ```json
 [
   {
     "username": "admin",
-    "hashed_password": "hashed_password" # pragma: allowlist secret
+    "hashed_password": "<sha256_of_password>"
   }
 ]
 ```
@@ -150,12 +161,14 @@ Response:
 }
 ```
 
-### Main Query Endpoint
+### Main query endpoint
 
-**POST `/api/ask`**
+When calling the agent directly:
+
+**POST `/ask`**
 
 ```bash
-curl -X POST "http://localhost:8000/api/ask" \
+curl -X POST "http://localhost:8000/ask" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
